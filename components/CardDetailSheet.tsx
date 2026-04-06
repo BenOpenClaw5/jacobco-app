@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ImagePlus, Trash2, ChevronRight, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, ChevronRight, Loader2 } from 'lucide-react';
 import { DisplayCard, Stage, STAGES, STAGE_META } from '@/lib/types';
 import { getCaseColor, STAGE_COLORS } from '@/lib/caseColors';
 import { supabase } from '@/lib/supabase';
@@ -16,28 +16,13 @@ interface CardDetailSheetProps {
   onCardMoved: (card: DisplayCard, newStage: Stage | null) => void;
 }
 
-const OVERLAY_VARIANTS = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
-
-const SHEET_VARIANTS = {
-  hidden: { y: '100%' },
-  visible: { y: '0%' },
-};
-
 export default function CardDetailSheet({
-  card,
-  eventId,
-  isOpen,
-  onClose,
-  onCardUpdated,
-  onCardMoved,
+  card, eventId, isOpen, onClose, onCardUpdated, onCardMoved,
 }: CardDetailSheetProps) {
   const [notes, setNotes] = useState('');
   const [approvedBy, setApprovedBy] = useState('');
   const [preppedBy, setPreppedBy] = useState('');
-  const [images, setImages] = useState<{ id: string; url: string; storage_path: string; event_card_id?: string; created_at?: string }[]>([]);
+  const [images, setImages] = useState<{ id: string; url: string; storage_path: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
@@ -54,30 +39,14 @@ export default function CardDetailSheet({
   }, [card]);
 
   if (!card) return null;
-
   const color = getCaseColor(card.type, card.customColor);
 
-  // Ensure event_cards record exists, return its id
   async function ensureEventCard(): Promise<string> {
     if (card!.eventCardId) return card!.eventCardId;
-
-    const insertData: Record<string, unknown> = {
-      event_id: eventId,
-      is_custom: card!.isCustom,
-    };
-    if (!card!.isCustom) {
-      insertData.inventory_case_id = card!.inventoryCaseId;
-    } else {
-      insertData.custom_name = card!.displayName;
-      insertData.custom_color = card!.customColor;
-    }
-
-    const { data, error } = await supabase
-      .from('event_cards')
-      .insert(insertData)
-      .select('id')
-      .single();
-
+    const insertData: Record<string, unknown> = { event_id: eventId, is_custom: card!.isCustom };
+    if (!card!.isCustom) insertData.inventory_case_id = card!.inventoryCaseId;
+    else { insertData.custom_name = card!.displayName; insertData.custom_color = card!.customColor; }
+    const { data, error } = await supabase.from('event_cards').insert(insertData).select('id').single();
     if (error) throw error;
     return data.id;
   }
@@ -87,23 +56,15 @@ export default function CardDetailSheet({
     setIsSaving(true);
     try {
       const ecId = await ensureEventCard();
-      const { error } = await supabase
-        .from('event_cards')
-        .update({ notes, approved_by: approvedBy, prepped_by: preppedBy })
-        .eq('id', ecId);
-      if (error) throw error;
+      await supabase.from('event_cards').update({ notes, approved_by: approvedBy, prepped_by: preppedBy }).eq('id', ecId);
       onCardUpdated({ eventCardId: ecId, notes, approved_by: approvedBy, prepped_by: preppedBy });
-    } catch (err) {
-      console.error('Save failed:', err);
-    } finally {
-      setIsSaving(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setIsSaving(false); }
   }
 
   function scheduleAutoSave() {
     if (saveTimeout) clearTimeout(saveTimeout);
-    const t = setTimeout(() => saveDetails(), 1200);
-    setSaveTimeout(t);
+    setSaveTimeout(setTimeout(() => saveDetails(), 1200));
   }
 
   async function handleMove(newStage: Stage | null) {
@@ -111,70 +72,36 @@ export default function CardDetailSheet({
     setIsMoving(true);
     try {
       const ecId = await ensureEventCard();
-      // First save any pending details
-      await supabase.from('event_cards').update({
-        stage: newStage ?? null,
-        notes,
-        approved_by: approvedBy,
-        prepped_by: preppedBy,
-      }).eq('id', ecId);
+      await supabase.from('event_cards').update({ stage: newStage ?? null, notes, approved_by: approvedBy, prepped_by: preppedBy }).eq('id', ecId);
       onCardMoved({ ...card, eventCardId: ecId }, newStage);
       onClose();
-    } catch (err) {
-      console.error('Move failed:', err);
-    } finally {
-      setIsMoving(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setIsMoving(false); }
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setIsUploading(true);
-
     try {
       const ecId = await ensureEventCard();
-      const uploadedImages: typeof images = [];
-
+      const uploaded: typeof images = [];
       for (const file of Array.from(files)) {
         const ext = file.name.split('.').pop();
         const path = `events/${eventId}/${ecId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('card-images')
-          .upload(path, file, { upsert: false });
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          continue;
-        }
-
+        const { error: upErr } = await supabase.storage.from('card-images').upload(path, file);
+        if (upErr) { console.error(upErr); continue; }
         const { data: urlData } = supabase.storage.from('card-images').getPublicUrl(path);
-
-        const { data: imgData, error: insertError } = await supabase
-          .from('event_card_images')
-          .insert({ event_card_id: ecId, url: urlData.publicUrl, storage_path: path })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Insert image error:', insertError);
-          continue;
-        }
-
-        uploadedImages.push({ id: imgData.id, url: imgData.url, storage_path: imgData.storage_path });
+        const { data: imgData, error: insErr } = await supabase.from('event_card_images').insert({ event_card_id: ecId, url: urlData.publicUrl, storage_path: path }).select().single();
+        if (insErr) { console.error(insErr); continue; }
+        uploaded.push({ id: imgData.id, url: imgData.url, storage_path: imgData.storage_path });
       }
-
-      const newImages = [...images, ...uploadedImages];
+      const newImages = [...images, ...uploaded];
       setImages(newImages);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onCardUpdated({ eventCardId: ecId, images: newImages as any });
-    } catch (err) {
-      console.error('Image upload failed:', err);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    } catch (err) { console.error(err); }
+    finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   }
 
   async function handleRemoveImage(imageId: string, storagePath: string) {
@@ -183,210 +110,166 @@ export default function CardDetailSheet({
       await supabase.from('event_card_images').delete().eq('id', imageId);
       const newImages = images.filter(img => img.id !== imageId);
       setImages(newImages);
-      if (card!.eventCardId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onCardUpdated({ eventCardId: card!.eventCardId, images: newImages as any });
-      }
-    } catch (err) {
-      console.error('Remove image failed:', err);
-    }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (card!.eventCardId) onCardUpdated({ eventCardId: card!.eventCardId, images: newImages as any });
+    } catch (err) { console.error(err); }
   }
 
-  const moveTargets: { label: string; stage: Stage | null; color: string; dot: string }[] = [
+  const moveTargets: { label: string; stage: Stage | null; accent: string }[] = [
     ...STAGES.filter(s => s !== card.stage).map(s => ({
       label: STAGE_META[s].label,
       stage: s as Stage,
-      color: STAGE_COLORS[s].accent,
-      dot: STAGE_COLORS[s].dot,
+      accent: STAGE_COLORS[s].accent,
     })),
-    ...(card.stage !== null && card.stage !== undefined
-      ? [{ label: 'Inventory Pool', stage: null as null, color: 'rgba(255,255,255,0.4)', dot: 'rgba(255,255,255,0.3)' }]
-      : []),
+    ...(card.stage ? [{ label: 'Inventory Pool', stage: null as null, accent: 'rgba(255,255,255,0.35)' }] : []),
   ];
+
+  const inputStyle = {
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    color: '#ffffff',
+    borderRadius: 0,
+    fontFamily: 'var(--font-urbanist)',
+    fontWeight: 200,
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             className="fixed inset-0 z-40"
-            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
-            variants={OVERLAY_VARIANTS}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
+            style={{ background: 'rgba(7,12,14,0.85)', backdropFilter: 'blur(6px)' }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
           />
 
-          {/* Sheet */}
           <motion.div
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-none overflow-hidden"
             style={{
-              background: '#141418',
-              border: `1px solid ${color.border}`,
-              borderBottom: 'none',
+              background: '#0c1317',
+              borderTop: `1px solid rgba(255,255,255,0.08)`,
               maxHeight: '92vh',
-              boxShadow: `0 -20px 60px rgba(0,0,0,0.6), 0 -4px 20px ${color.glow}`,
+              boxShadow: '0 -40px 80px rgba(0,0,0,0.7)',
             }}
-            variants={SHEET_VARIANTS}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 32, stiffness: 280 }}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+            {/* Drag indicator */}
+            <div className="flex justify-center pt-4 pb-2">
+              <div className="w-8 h-px" style={{ background: 'rgba(255,255,255,0.2)' }} />
             </div>
 
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(92vh - 20px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(92vh - 24px)' }}>
               {/* Header */}
-              <div className="flex items-start justify-between px-6 pt-3 pb-5">
+              <div className="flex items-start justify-between px-6 pt-4 pb-6">
                 <div>
                   <div
-                    className="text-xs font-medium tracking-widest uppercase mb-1"
-                    style={{ color: color.text }}
+                    className="text-[9px] font-light tracking-[0.3em] uppercase mb-2"
+                    style={{ color: color.text, fontFamily: 'var(--font-josefin)' }}
                   >
-                    {card.type}
+                    {card.isCustom ? 'Custom' : card.type}
                   </div>
-                  <div className="text-3xl font-bold" style={{ color: '#F0EFE8' }}>
+                  <div
+                    className="text-4xl font-light tracking-wide"
+                    style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+                  >
                     {card.isCustom ? card.displayName : card.letter}
                   </div>
-                  {card.stage && (
-                    <div className="flex items-center gap-1.5 mt-2">
-                      <div
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: STAGE_COLORS[card.stage].dot }}
-                      />
-                      <span className="text-xs" style={{ color: STAGE_COLORS[card.stage].accent }}>
-                        {STAGE_COLORS[card.stage].label}
-                      </span>
+                  {!card.isCustom && (
+                    <div
+                      className="text-sm font-light mt-1"
+                      style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
+                    >
+                      {card.displayName}
                     </div>
                   )}
-                  {!card.stage && (
-                    <div className="flex items-center gap-1.5 mt-2">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
-                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                        Inventory Pool
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="w-3 h-px" style={{ background: card.stage ? STAGE_COLORS[card.stage].accent : 'rgba(255,255,255,0.2)' }} />
+                    <span
+                      className="text-[10px] tracking-[0.2em] uppercase font-light"
+                      style={{
+                        color: card.stage ? STAGE_COLORS[card.stage].accent : 'rgba(255,255,255,0.25)',
+                        fontFamily: 'var(--font-josefin)',
+                      }}
+                    >
+                      {card.stage ? STAGE_COLORS[card.stage].label : 'Inventory Pool'}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="w-9 h-9 rounded-full flex items-center justify-center mt-1 transition-colors"
-                  style={{ background: 'rgba(255,255,255,0.06)' }}
-                >
-                  <X size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
+                  <X size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
                 </button>
               </div>
 
-              {/* Left accent line */}
-              <div
-                className="mx-6 h-px mb-5"
-                style={{ background: `linear-gradient(90deg, ${color.accent}40, transparent)` }}
-              />
+              <div className="h-px mx-6" style={{ background: 'rgba(255,255,255,0.06)' }} />
 
-              {/* Details section */}
-              <div className="px-6 space-y-5">
+              <div className="px-6 pt-6 space-y-6 pb-10">
                 {/* Notes */}
                 <div>
-                  <label className="block text-xs font-medium tracking-widest uppercase mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
                     Notes
                   </label>
                   <textarea
                     value={notes}
                     onChange={e => { setNotes(e.target.value); scheduleAutoSave(); }}
                     rows={3}
-                    placeholder="Event-specific notes..."
-                    className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none transition-all placeholder:opacity-30"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      color: '#F0EFE8',
-                    }}
-                    onFocus={e => {
-                      e.target.style.borderColor = color.accent + '55';
-                    }}
-                    onBlur={e => {
-                      e.target.style.borderColor = 'rgba(255,255,255,0.08)';
-                      saveDetails();
-                    }}
+                    placeholder="Event-specific notes"
+                    className="w-full text-sm resize-none outline-none placeholder:opacity-20"
+                    style={{ ...inputStyle, padding: '0 0 8px 0', fontSize: '13px', letterSpacing: '0.01em' }}
+                    onBlur={() => saveDetails()}
                   />
                 </div>
 
-                {/* Approved by / Prepped by */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium tracking-widest uppercase mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      Approved by
-                    </label>
-                    <input
-                      value={approvedBy}
-                      onChange={e => { setApprovedBy(e.target.value); scheduleAutoSave(); }}
-                      placeholder="Name"
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:opacity-30"
-                      style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: '#F0EFE8',
-                      }}
-                      onFocus={e => { e.target.style.borderColor = color.accent + '55'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; saveDetails(); }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium tracking-widest uppercase mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      Prepped by
-                    </label>
-                    <input
-                      value={preppedBy}
-                      onChange={e => { setPreppedBy(e.target.value); scheduleAutoSave(); }}
-                      placeholder="Name"
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:opacity-30"
-                      style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: '#F0EFE8',
-                      }}
-                      onFocus={e => { e.target.style.borderColor = color.accent + '55'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; saveDetails(); }}
-                    />
-                  </div>
+                {/* Approved / Prepped */}
+                <div className="grid grid-cols-2 gap-5">
+                  {[
+                    { label: 'Approved by', value: approvedBy, set: setApprovedBy },
+                    { label: 'Prepped by', value: preppedBy, set: setPreppedBy },
+                  ].map(({ label, value, set }) => (
+                    <div key={label}>
+                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                        {label}
+                      </label>
+                      <input
+                        value={value}
+                        onChange={e => { set(e.target.value); scheduleAutoSave(); }}
+                        onBlur={() => saveDetails()}
+                        placeholder="Name"
+                        className="w-full text-sm outline-none placeholder:opacity-20"
+                        style={{ ...inputStyle, padding: '0 0 8px 0', fontSize: '13px' }}
+                      />
+                    </div>
+                  ))}
                 </div>
 
-                {/* Auto-save indicator */}
                 {isSaving && (
-                  <div className="flex items-center gap-1.5">
-                    <Loader2 size={10} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />
-                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Saving…</span>
+                  <div className="flex items-center gap-2">
+                    <Loader2 size={9} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                    <span className="text-[9px] tracking-widest uppercase font-light" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Saving</span>
                   </div>
                 )}
 
                 {/* Images */}
                 <div>
-                  <label className="block text-xs font-medium tracking-widest uppercase mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
                     Photos
                   </label>
 
                   {images.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="grid grid-cols-3 gap-1.5 mb-3">
                       {images.map(img => (
-                        <div key={img.id} className="relative group rounded-xl overflow-hidden aspect-square">
+                        <div key={img.id} className="relative group aspect-square overflow-hidden" style={{ background: '#080d10' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={img.url}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={img.url} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
                           <button
                             onClick={() => handleRemoveImage(img.id, img.storage_path)}
-                            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ background: 'rgba(0,0,0,0.75)' }}
+                            className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.15)' }}
                           >
-                            <Trash2 size={10} style={{ color: '#ef4444' }} />
+                            <Trash2 size={9} style={{ color: '#ff6b6b' }} />
                           </button>
                         </div>
                       ))}
@@ -396,68 +279,47 @@ export default function CardDetailSheet({
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="flex items-center gap-2.5 w-full rounded-xl px-4 py-3 text-sm transition-colors"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px dashed rgba(255,255,255,0.12)',
-                      color: 'rgba(255,255,255,0.4)',
-                    }}
+                    className="flex items-center gap-2 py-2.5 text-xs font-light transition-opacity hover:opacity-60"
+                    style={{ color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 16px', fontFamily: 'var(--font-josefin)', letterSpacing: '0.15em', fontSize: '10px', textTransform: 'uppercase' }}
                   >
-                    {isUploading ? (
-                      <Loader2 size={15} className="animate-spin" />
-                    ) : (
-                      <ImagePlus size={15} />
-                    )}
-                    <span>{isUploading ? 'Uploading…' : 'Add photos'}</span>
+                    {isUploading ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+                    {isUploading ? 'Uploading' : 'Add Photos'}
                   </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
+                  <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </div>
 
-                {/* Move To */}
+                {/* Move to */}
                 <div>
-                  <label className="block text-xs font-medium tracking-widest uppercase mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-4" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
                     Move to
                   </label>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {moveTargets.map(target => (
                       <button
                         key={target.label}
                         onClick={() => handleMove(target.stage)}
                         disabled={isMoving}
-                        className="flex items-center justify-between w-full rounded-xl px-4 py-3.5 text-sm transition-all"
-                        style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: `1px solid rgba(255,255,255,0.07)`,
-                          color: target.color,
-                        }}
+                        className="flex items-center justify-between w-full py-3 px-0 text-left transition-opacity hover:opacity-60"
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                       >
                         <div className="flex items-center gap-3">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ background: target.dot }}
-                          />
-                          <span>{target.label}</span>
+                          <div className="w-3 h-px" style={{ background: target.accent }} />
+                          <span
+                            className="text-[10px] tracking-[0.2em] uppercase font-light"
+                            style={{ color: target.accent, fontFamily: 'var(--font-josefin)' }}
+                          >
+                            {target.label}
+                          </span>
                         </div>
-                        {isMoving ? (
-                          <Loader2 size={14} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />
-                        ) : (
-                          <ChevronRight size={14} style={{ color: 'rgba(255,255,255,0.2)' }} />
-                        )}
+                        {isMoving
+                          ? <Loader2 size={11} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                          : <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                        }
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-
-              {/* Bottom padding for safe area */}
-              <div className="h-10" />
             </div>
           </motion.div>
         </>

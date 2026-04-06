@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist } from 'next/font/google';
+import { Josefin_Sans, Urbanist } from 'next/font/google';
 import './globals.css';
 
-const geist = Geist({
+const josefin = Josefin_Sans({
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  weight: ['100', '300', '400'],
+  variable: '--font-josefin',
+  display: 'swap',
+});
+
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  weight: ['200', '300', '400', '500'],
+  variable: '--font-urbanist',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -22,16 +31,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#08080A',
+  themeColor: '#070c0e',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full`}>
+    <html lang="en" className={`${josefin.variable} ${urbanist.variable} h-full`}>
       <body className="min-h-full antialiased">{children}</body>
     </html>
   );

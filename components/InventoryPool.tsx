@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { DisplayCard } from '@/lib/types';
 import CaseCard from './CaseCard';
-import { Package } from 'lucide-react';
 
 interface InventoryPoolProps {
   cards: DisplayCard[];
@@ -22,7 +21,7 @@ function groupByType(cards: DisplayCard[]): Record<string, DisplayCard[]> {
 
 const CONTAINER_VARIANTS = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.02, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.015, delayChildren: 0.03 } },
 };
 
 export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps) {
@@ -35,61 +34,58 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <Package size={15} style={{ color: 'rgba(255,255,255,0.25)' }} />
+      <div className="flex items-center gap-3 mb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
+        <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.25)' }} />
         <span
-          className="text-xs font-semibold tracking-widest uppercase"
-          style={{ color: 'rgba(255,255,255,0.3)' }}
+          className="text-[10px] font-light tracking-[0.28em] uppercase"
+          style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
         >
           Inventory Pool
         </span>
         {cards.length > 0 && (
           <span
-            className="text-xs px-1.5 py-0.5 rounded-md"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }}
+            className="text-[10px] font-light"
+            style={{ color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--font-urbanist)' }}
           >
-            {cards.length}
+            {cards.length} cases
           </span>
         )}
       </div>
 
       {cards.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center py-12 rounded-2xl border border-dashed"
-          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}
+          className="flex flex-col items-center justify-center py-14"
+          style={{ border: '1px dashed rgba(255,255,255,0.05)', borderRadius: '2px' }}
         >
-          <Package size={32} style={{ color: 'rgba(255,255,255,0.08)' }} />
-          <p className="text-sm mt-3" style={{ color: 'rgba(255,255,255,0.18)' }}>
-            All cases are in staging
+          <div className="w-6 h-px mb-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
+          <p
+            className="text-[10px] tracking-[0.25em] uppercase font-light"
+            style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}
+          >
+            All cases in staging
           </p>
         </div>
       ) : (
         <motion.div
-          className="space-y-4"
+          className="space-y-5"
           variants={CONTAINER_VARIANTS}
           initial="hidden"
           animate="visible"
         >
-          {groupKeys.map(groupKey => {
-            const groupCards = groups[groupKey];
-            const label = groupKey === '__custom__' ? 'Custom' : groupKey;
+          {groupKeys.map(key => {
+            const groupCards = groups[key];
+            const label = key === '__custom__' ? 'Custom' : key;
             return (
-              <div key={groupKey}>
+              <div key={key}>
                 <div
-                  className="text-[10px] font-medium tracking-widest uppercase mb-2 px-0.5"
-                  style={{ color: 'rgba(255,255,255,0.18)' }}
+                  className="text-[9px] font-light tracking-[0.22em] uppercase mb-2"
+                  style={{ color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }}
                 >
                   {label}
                 </div>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
                   {groupCards.map(card => (
-                    <CaseCard
-                      key={card.displayId}
-                      card={card}
-                      onClick={() => onCardClick(card)}
-                      compact
-                    />
+                    <CaseCard key={card.displayId} card={card} onClick={() => onCardClick(card)} compact />
                   ))}
                 </div>
               </div>

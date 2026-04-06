@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronRight, MapPin, Calendar, Loader2, Zap } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, MapPin, Calendar, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Event } from '@/lib/types';
 import Logo from '@/components/Logo';
@@ -16,79 +16,56 @@ function formatDate(dateStr?: string) {
 }
 
 const CARD_VARIANTS = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0 },
 };
 
 const CONTAINER_VARIANTS = {
   hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.15 },
-  },
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
 };
 
-interface DeleteConfirmProps {
-  event: Event;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isDeleting: boolean;
-}
-
-function DeleteConfirm({ event, onConfirm, onCancel, isDeleting }: DeleteConfirmProps) {
+function DeleteConfirm({ event, onConfirm, onCancel, isDeleting }: {
+  event: Event; onConfirm: () => void; onCancel: () => void; isDeleting: boolean;
+}) {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
-      <div
-        className="absolute inset-0"
-        style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
-        onClick={onCancel}
-      />
+      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
       <motion.div
-        className="relative w-full max-w-sm rounded-2xl p-6"
-        style={{
-          background: '#161618',
-          border: '1px solid rgba(239,68,68,0.2)',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-        }}
-        initial={{ scale: 0.95, y: 8 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.95, y: 8 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="relative w-full max-w-xs p-8"
+        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.97 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
       >
-        <h3 className="text-lg font-semibold mb-2" style={{ color: '#F0EFE8' }}>Delete Event?</h3>
-        <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          Delete Event?
+        </h3>
+        <p className="text-xs font-light mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           This will permanently delete
         </p>
-        <p className="text-sm font-medium mb-4" style={{ color: '#F0EFE8' }}>
+        <p className="text-sm font-light mb-4" style={{ color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           &quot;{event.name}&quot;
         </p>
-        <p className="text-xs mb-6" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          All cards, notes, and images for this event will be lost.
-        </p>
+        <div className="h-px mb-5" style={{ background: 'rgba(255,255,255,0.06)' }} />
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 rounded-xl py-3 text-sm font-medium transition-colors"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1 rounded-xl py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2"
-            style={{
-              background: 'rgba(239,68,68,0.15)',
-              color: '#ef4444',
-              border: '1px solid rgba(239,68,68,0.25)',
-            }}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,80,80,0.3)', color: 'rgba(255,110,110,0.8)', fontFamily: 'var(--font-josefin)' }}
           >
-            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isDeleting ? 'Deleting…' : 'Delete'}
+            {isDeleting && <Loader2 size={10} className="animate-spin" />}
+            {isDeleting ? 'Deleting' : 'Delete'}
           </button>
         </div>
       </motion.div>
@@ -103,144 +80,97 @@ export default function HomePage() {
   const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  useEffect(() => { loadEvents(); }, []);
 
   async function loadEvents() {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       setEvents(data as Event[]);
-    } catch (err) {
-      console.error('Failed to load events:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function handleEventCreated(event: Event) {
-    setEvents(prev => [event, ...prev]);
+    } catch (err) { console.error(err); }
+    finally { setIsLoading(false); }
   }
 
   async function handleDeleteConfirm() {
     if (!deletingEvent) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('events').delete().eq('id', deletingEvent.id);
-      if (error) throw error;
+      await supabase.from('events').delete().eq('id', deletingEvent.id);
       setEvents(prev => prev.filter(e => e.id !== deletingEvent.id));
       setDeletingEvent(null);
-    } catch (err) {
-      console.error('Delete failed:', err);
-    } finally {
-      setIsDeleting(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setIsDeleting(false); }
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#08080A' }}>
-      {/* Header */}
-      <header className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse 80% 60% at 50% -20%, rgba(196,163,90,0.08) 0%, transparent 70%)',
-          }}
-        />
+    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+      {/* Navigation */}
+      <nav className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <Logo size="sm" asLink={false} />
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+          style={{ border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+        >
+          <Plus size={11} strokeWidth={1.5} />
+          New Event
+        </button>
+      </nav>
 
-        <div className="relative px-5 pt-12 pb-10">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+      {/* Hero title */}
+      <div className="px-6 pt-14 pb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="text-[9px] tracking-[0.4em] uppercase font-light mb-4" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+            Production Board
+          </div>
+          <h1
+            className="text-3xl font-light tracking-[0.06em] leading-tight"
+            style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
           >
-            <Logo size="lg" asLink={false} />
-          </motion.div>
+            Events
+          </h1>
+          {!isLoading && (
+            <p className="text-xs font-light mt-2" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, letterSpacing: '0.03em' }}>
+              {events.length} {events.length === 1 ? 'event' : 'events'} in production
+            </p>
+          )}
+        </motion.div>
+      </div>
 
-          <motion.div
-            className="mt-8 flex items-end justify-between"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <div>
-              <h2 className="text-2xl font-semibold" style={{ color: '#F0EFE8' }}>
-                Events
-              </h2>
-              <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                {events.length} {events.length === 1 ? 'event' : 'events'} in production
-              </p>
-            </div>
+      <div className="h-px mx-6" style={{ background: 'rgba(255,255,255,0.05)' }} />
 
-            <motion.button
-              onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, #C4A35A, #D4B870)',
-                color: '#0A0A0C',
-                boxShadow: '0 4px 20px rgba(196,163,90,0.25)',
-              }}
-              whileHover={{ scale: 1.02, boxShadow: '0 6px 28px rgba(196,163,90,0.35)' }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.12 }}
-            >
-              <Plus size={15} />
-              New Event
-            </motion.button>
-          </motion.div>
-        </div>
-
-        <div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
-        />
-      </header>
-
-      {/* Content */}
-      <main className="px-4 py-6">
+      {/* List */}
+      <main className="px-6 py-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={24} className="animate-spin" style={{ color: 'rgba(196,163,90,0.5)' }} />
+          <div className="flex items-center justify-center py-28">
+            <Loader2 size={18} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
           </div>
         ) : events.length === 0 ? (
           <EmptyState onCreate={() => setIsCreateOpen(true)} />
         ) : (
           <motion.div
-            className="space-y-3"
+            className="space-y-px"
             variants={CONTAINER_VARIANTS}
             initial="hidden"
             animate="visible"
           >
             {events.map(event => (
-              <EventListCard
-                key={event.id}
-                event={event}
-                onDelete={() => setDeletingEvent(event)}
-              />
+              <EventListCard key={event.id} event={event} onDelete={() => setDeletingEvent(event)} />
             ))}
           </motion.div>
         )}
       </main>
 
-      <CreateEventModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onCreated={handleEventCreated}
-      />
+      <CreateEventModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} onCreated={e => setEvents(p => [e, ...p])} />
 
       <AnimatePresence>
         {deletingEvent && (
-          <DeleteConfirm
-            event={deletingEvent}
-            onConfirm={handleDeleteConfirm}
-            onCancel={() => setDeletingEvent(null)}
-            isDeleting={isDeleting}
-          />
+          <DeleteConfirm event={deletingEvent} onConfirm={handleDeleteConfirm} onCancel={() => setDeletingEvent(null)} isDeleting={isDeleting} />
         )}
       </AnimatePresence>
     </div>
@@ -250,137 +180,90 @@ export default function HomePage() {
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <motion.div
-      className="flex flex-col items-center justify-center py-24 text-center"
-      initial={{ opacity: 0, y: 16 }}
+      className="flex flex-col items-center justify-center py-28 text-center"
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
     >
-      <div
-        className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
-        style={{
-          background: 'rgba(196,163,90,0.06)',
-          border: '1px solid rgba(196,163,90,0.12)',
-        }}
+      <div className="w-12 h-px mb-8" style={{ background: 'rgba(255,255,255,0.1)' }} />
+      <h3
+        className="text-lg font-light tracking-[0.1em] mb-2"
+        style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
       >
-        <Zap size={32} style={{ color: 'rgba(196,163,90,0.5)' }} />
-      </div>
-      <h3 className="text-xl font-semibold mb-2" style={{ color: '#F0EFE8' }}>
-        No events yet
+        No Events Yet
       </h3>
-      <p className="text-sm mb-8 max-w-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-        Create your first event to start tracking lighting cases across stages.
+      <p className="text-xs font-light mb-10 max-w-xs" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, lineHeight: 1.8 }}>
+        Create your first event to begin tracking lighting cases across production stages.
       </p>
       <button
         onClick={onCreate}
-        className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold"
-        style={{
-          background: 'linear-gradient(135deg, #C4A35A, #D4B870)',
-          color: '#0A0A0C',
-          boxShadow: '0 4px 20px rgba(196,163,90,0.25)',
-        }}
+        className="flex items-center gap-2.5 px-7 py-3 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity hover:opacity-60"
+        style={{ border: '1px solid rgba(255,255,255,0.4)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
       >
-        <Plus size={15} />
-        Create First Event
+        <Plus size={11} strokeWidth={1.5} />
+        Create Event
       </button>
     </motion.div>
   );
 }
 
-interface EventListCardProps {
-  event: Event;
-  onDelete: () => void;
-}
-
-function EventListCard({ event, onDelete }: EventListCardProps) {
+function EventListCard({ event, onDelete }: { event: Event; onDelete: () => void }) {
   return (
     <motion.div
       variants={CARD_VARIANTS}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="relative group"
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative"
     >
       <Link href={`/events/${event.id}`} className="block">
         <motion.div
-          className="rounded-2xl overflow-hidden relative"
-          style={{
-            background: '#111115',
-            border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
-          }}
-          whileHover={{
-            borderColor: 'rgba(196,163,90,0.2)',
-            boxShadow: '0 4px 28px rgba(0,0,0,0.4)',
-          }}
-          whileTap={{ scale: 0.99 }}
+          className="flex items-center justify-between py-5 px-0 relative"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          whileHover={{ x: 2 }}
           transition={{ duration: 0.15 }}
         >
-          {/* Gold left accent */}
+          {/* Left accent — only visible on hover */}
           <div
-            className="absolute left-0 top-4 bottom-4 w-0.5 rounded-full"
-            style={{ background: 'linear-gradient(180deg, #C4A35A, rgba(196,163,90,0.3))' }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-px transition-all duration-200 opacity-0 group-hover:opacity-100"
+            style={{ background: 'rgba(255,255,255,0.5)', height: '40%' }}
           />
 
-          <div className="pl-5 pr-4 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold truncate" style={{ color: '#F0EFE8' }}>
-                  {event.name}
-                </h3>
-
-                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                  {event.location && (
-                    <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      <MapPin size={10} />
-                      {event.location}
-                    </span>
-                  )}
-                  {event.event_start_date && (
-                    <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      <Calendar size={10} />
-                      {formatDate(event.event_start_date)}
-                    </span>
-                  )}
-                  {event.load_by_date && (
-                    <span className="text-xs" style={{ color: 'rgba(196,163,90,0.6)' }}>
-                      Load by {formatDate(event.load_by_date)}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={e => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                  style={{ background: 'rgba(239,68,68,0.08)' }}
-                >
-                  <Trash2 size={13} style={{ color: 'rgba(239,68,68,0.6)' }} />
-                </button>
-
-                <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center"
-                  style={{ background: 'rgba(255,255,255,0.04)' }}
-                >
-                  <ChevronRight size={14} style={{ color: 'rgba(255,255,255,0.3)' }} />
-                </div>
-              </div>
+          <div className="pl-3 min-w-0 flex-1">
+            <h3
+              className="font-light tracking-[0.05em] truncate"
+              style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)', fontSize: '15px' }}
+            >
+              {event.name}
+            </h3>
+            <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+              {event.location && (
+                <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+                  <MapPin size={10} strokeWidth={1.5} />
+                  {event.location}
+                </span>
+              )}
+              {event.event_start_date && (
+                <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+                  <Calendar size={10} strokeWidth={1.5} />
+                  {formatDate(event.event_start_date)}
+                </span>
+              )}
+              {event.load_by_date && (
+                <span className="text-[10px] font-light tracking-[0.12em] uppercase" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}>
+                  Load {formatDate(event.load_by_date)}
+                </span>
+              )}
             </div>
-
-            {event.notes && (
-              <p
-                className="text-xs mt-2.5 line-clamp-1"
-                style={{ color: 'rgba(255,255,255,0.2)' }}
-              >
-                {event.notes}
-              </p>
-            )}
           </div>
 
-          <div
-            className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{
-              background: 'linear-gradient(135deg, rgba(196,163,90,0.03) 0%, transparent 50%)',
-            }}
-          />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+              className="w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 size={12} strokeWidth={1.5} style={{ color: 'rgba(255,100,100,0.5)' }} />
+            </button>
+            <ChevronRight size={13} strokeWidth={1} style={{ color: 'rgba(255,255,255,0.2)' }} className="transition-transform group-hover:translate-x-0.5 duration-150" />
+          </div>
         </motion.div>
       </Link>
     </motion.div>

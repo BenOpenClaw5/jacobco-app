@@ -9,41 +9,34 @@ interface LogoProps {
 }
 
 export default function Logo({ size = 'md', asLink = true }: LogoProps) {
-  const sizes = {
-    sm: { text: 'text-base', sub: 'text-[9px]', gap: 'gap-1.5' },
-    md: { text: 'text-xl', sub: 'text-[10px]', gap: 'gap-2' },
-    lg: { text: 'text-3xl', sub: 'text-xs', gap: 'gap-2.5' },
+  const configs = {
+    sm: { markSize: 16, wordmark: 'text-sm', sub: 'text-[8px]', gap: 'gap-2.5' },
+    md: { markSize: 20, wordmark: 'text-base', sub: 'text-[9px]', gap: 'gap-3' },
+    lg: { markSize: 26, wordmark: 'text-2xl', sub: 'text-[10px]', gap: 'gap-3.5' },
   };
-
-  const s = sizes[size];
+  const c = configs[size];
 
   const content = (
-    <div className={`flex items-center ${s.gap}`}>
-      {/* Mark */}
-      <div className="relative flex-shrink-0">
-        <svg width={size === 'lg' ? 28 : size === 'md' ? 22 : 18} height={size === 'lg' ? 28 : size === 'md' ? 22 : 18} viewBox="0 0 24 24" fill="none">
-          <polygon
-            points="12,2 22,20 2,20"
-            fill="none"
-            stroke="#C4A35A"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <line x1="12" y1="8" x2="12" y2="16" stroke="#C4A35A" strokeWidth="1.2" />
-          <circle cx="12" cy="17.5" r="1" fill="#C4A35A" />
-        </svg>
-      </div>
+    <div className={`flex items-center ${c.gap}`}>
+      {/* Geometric mark — two interlocked thin lines forming a J/C crosshair */}
+      <svg width={c.markSize} height={c.markSize} viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+        <rect x="1" y="11.5" width="22" height="1" fill="white" opacity="0.9" />
+        <rect x="11.5" y="1" width="1" height="22" fill="white" opacity="0.9" />
+        <circle cx="12" cy="12" r="3.5" fill="none" stroke="white" strokeWidth="0.8" opacity="0.7" />
+        <circle cx="12" cy="12" r="1" fill="white" opacity="0.9" />
+      </svg>
+
       {/* Wordmark */}
-      <div className="flex flex-col">
+      <div className="flex flex-col justify-center">
         <span
-          className={`${s.text} font-semibold tracking-widest uppercase leading-none`}
-          style={{ color: '#F0EFE8', letterSpacing: '0.18em' }}
+          className={`${c.wordmark} font-light tracking-[0.25em] uppercase leading-none`}
+          style={{ fontFamily: 'var(--font-josefin)', color: '#ffffff' }}
         >
           Jacob Co
         </span>
         <span
-          className={`${s.sub} tracking-widest uppercase leading-none mt-0.5`}
-          style={{ color: '#C4A35A', letterSpacing: '0.22em' }}
+          className={`${c.sub} tracking-[0.3em] uppercase leading-none mt-1`}
+          style={{ color: 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
         >
           Event Lighting
         </span>
@@ -54,7 +47,7 @@ export default function Logo({ size = 'md', asLink = true }: LogoProps) {
   if (asLink) {
     return (
       <Link href="/" className="block">
-        <motion.div whileHover={{ opacity: 0.85 }} transition={{ duration: 0.15 }}>
+        <motion.div whileHover={{ opacity: 0.7 }} transition={{ duration: 0.2 }}>
           {content}
         </motion.div>
       </Link>

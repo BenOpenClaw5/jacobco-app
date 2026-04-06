@@ -13,69 +13,56 @@ interface StageColumnProps {
 
 const CONTAINER_VARIANTS = {
   hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.1 },
-  },
+  visible: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } },
 };
 
 export default function StageColumn({ stage, cards, onCardClick }: StageColumnProps) {
-  const stageColor = STAGE_COLORS[stage];
+  const sc = STAGE_COLORS[stage];
 
   return (
     <div className="flex flex-col h-full">
-      {/* Column header */}
-      <div
-        className="flex items-center gap-2.5 px-3 py-3 rounded-t-2xl mb-2"
-        style={{
-          background: stageColor.bg,
-          borderBottom: `1px solid ${stageColor.border}`,
-        }}
-      >
-        <div
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ background: stageColor.dot }}
-        />
-        <span
-          className="text-xs font-semibold tracking-widest uppercase"
-          style={{ color: stageColor.accent }}
-        >
-          {stageColor.label}
-        </span>
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 mb-3" style={{ borderBottom: `1px solid rgba(255,255,255,0.07)` }}>
+        <div className="flex items-center gap-2">
+          <div className="w-px h-3" style={{ background: sc.accent }} />
+          <span
+            className="text-[10px] font-light tracking-[0.25em] uppercase"
+            style={{ color: sc.accent, fontFamily: 'var(--font-josefin)' }}
+          >
+            {sc.label}
+          </span>
+        </div>
         {cards.length > 0 && (
           <span
-            className="ml-auto text-xs font-medium px-1.5 py-0.5 rounded-md"
-            style={{
-              background: `${stageColor.accent}18`,
-              color: stageColor.accent,
-            }}
+            className="text-[10px] font-light"
+            style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}
           >
             {cards.length}
           </span>
         )}
       </div>
 
-      {/* Cards */}
       <motion.div
-        className="flex flex-col gap-2 flex-1"
+        className="flex flex-col gap-1.5 flex-1"
         variants={CONTAINER_VARIANTS}
         initial="hidden"
         animate="visible"
       >
         {cards.length === 0 ? (
           <div
-            className="flex-1 flex items-center justify-center rounded-xl min-h-16 border border-dashed"
-            style={{ borderColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.15)' }}
+            className="flex-1 flex items-center justify-center min-h-14 rounded-sm"
+            style={{ border: '1px dashed rgba(255,255,255,0.05)' }}
           >
-            <span className="text-xs tracking-wide">Empty</span>
+            <span
+              className="text-[9px] tracking-[0.2em] uppercase"
+              style={{ color: 'rgba(255,255,255,0.12)', fontFamily: 'var(--font-josefin)' }}
+            >
+              Empty
+            </span>
           </div>
         ) : (
           cards.map(card => (
-            <CaseCard
-              key={card.displayId}
-              card={card}
-              onClick={() => onCardClick(card)}
-              compact
-            />
+            <CaseCard key={card.displayId} card={card} onClick={() => onCardClick(card)} compact />
           ))
         )}
       </motion.div>

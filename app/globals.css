@@ -1,15 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-base: #08080A;
-  --color-bg-surface: #101014;
-  --color-bg-card: #16161A;
-  --color-bg-elevated: #1C1C22;
-  --color-text-primary: #F0EFE8;
-  --color-text-secondary: #8A8A96;
-  --color-text-muted: #4A4A56;
-  --color-gold: #C4A35A;
-  --color-gold-light: #D4B870;
+  --color-bg: #070c0e;
+  --color-surface: #0c1317;
+  --color-card: #101820;
+  --color-elevated: #151f28;
+  --color-white: #ffffff;
+  --color-silver: #d6d6d6;
+  --color-muted: rgba(255,255,255,0.35);
+  --color-faint: rgba(255,255,255,0.12);
 }
 
 * {
@@ -22,55 +21,46 @@ html {
 }
 
 body {
-  background: #08080A;
-  color: #F0EFE8;
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  background: #070c0e;
+  color: #ffffff;
+  font-family: var(--font-urbanist), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, .display {
+  font-family: var(--font-josefin), var(--font-urbanist), system-ui, sans-serif;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-/* Date input dark mode */
+/* Date input */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.6);
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: pointer;
 }
 
-/* Remove number input arrows */
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* Focus ring override */
-:focus-visible {
-  outline: none;
-}
+:focus-visible { outline: none; }
 
-/* Mobile safe area support */
 @supports (padding: max(0px)) {
-  .safe-bottom {
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
+  .safe-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
 }
+
+/* Ghost button style */
+.btn-ghost {
+  border: 1px solid rgba(255,255,255,0.5);
+  background: transparent;
+  color: #ffffff;
+  transition: opacity 0.2s ease;
+}
+.btn-ghost:hover { opacity: 0.7; }
