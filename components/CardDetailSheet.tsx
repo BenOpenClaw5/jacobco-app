@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, ChevronRight, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, ChevronRight, Loader2, ZoomIn } from 'lucide-react';
 import { DisplayCard, Stage, STAGES, STAGE_META } from '@/lib/types';
 import { getCaseColor, STAGE_COLORS } from '@/lib/caseColors';
 import { supabase } from '@/lib/supabase';
@@ -27,6 +27,7 @@ export default function CardDetailSheet({
   const [isUploading, setIsUploading] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function CardDetailSheet({
     try {
       const ecId = await ensureEventCard();
       await supabase.from('event_cards').update({ notes, approved_by: approvedBy, prepped_by: preppedBy }).eq('id', ecId);
-      onCardUpdated({ eventCardId: ecId, notes, approved_by: approvedBy, prepped_by: preppedBy });
+      onCardUpdated({ eventCardId: ecId, displayId: card!.displayId, notes, approved_by: approvedBy, prepped_by: preppedBy });
     } catch (err) { console.error(err); }
     finally { setIsSaving(false); }
   }
@@ -99,7 +100,7 @@ export default function CardDetailSheet({
       const newImages = [...images, ...uploaded];
       setImages(newImages);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onCardUpdated({ eventCardId: ecId, images: newImages as any });
+      onCardUpdated({ eventCardId: ecId, displayId: card!.displayId, images: newImages as any });
     } catch (err) { console.error(err); }
     finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   }
@@ -111,7 +112,7 @@ export default function CardDetailSheet({
       const newImages = images.filter(img => img.id !== imageId);
       setImages(newImages);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (card!.eventCardId) onCardUpdated({ eventCardId: card!.eventCardId, images: newImages as any });
+      if (card!.eventCardId) onCardUpdated({ eventCardId: card!.eventCardId, displayId: card!.displayId, images: newImages as any });
     } catch (err) { console.error(err); }
   }
 
@@ -135,6 +136,7 @@ export default function CardDetailSheet({
   };
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -263,11 +265,17 @@ export default function CardDetailSheet({
                       {images.map(img => (
                         <div key={img.id} className="relative group aspect-square overflow-hidden" style={{ background: '#080d10' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={img.url} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
+                          <img src={img.url} alt="" className="w-full h-full object-cover opacity-75 group-hover:opacity-50 transition-opacity" />
+                          <button
+                            onClick={() => setLightboxUrl(img.url)}
+                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <ZoomIn size={16} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.8)' }} />
+                          </button>
                           <button
                             onClick={() => handleRemoveImage(img.id, img.storage_path)}
                             className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.15)' }}
+                            style={{ background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.15)' }}
                           >
                             <Trash2 size={9} style={{ color: '#ff6b6b' }} />
                           </button>
@@ -325,5 +333,41 @@ export default function CardDetailSheet({
         </>
       )}
     </AnimatePresence>
+
+    {/* Lightbox */}
+    <AnimatePresence key="lightbox">
+      {lightboxUrl && (
+        <>
+          <motion.div
+            className="fixed inset-0 z-[70]"
+            style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)' }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setLightboxUrl(null)}
+          />
+          <motion.div
+            className="fixed inset-0 z-[71] flex items-center justify-center p-6"
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 32, stiffness: 300 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxUrl}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+              style={{ maxHeight: '88vh', boxShadow: '0 0 80px rgba(0,0,0,0.8)' }}
+              onClick={e => e.stopPropagation()}
+            />
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
+              style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
+            >
+              <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+            </button>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

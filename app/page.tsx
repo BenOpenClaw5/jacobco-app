@@ -108,14 +108,23 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <Logo size="sm" asLink={false} />
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-          style={{ border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
-        >
-          <Plus size={11} strokeWidth={1.5} />
-          New Event
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/payroll"
+            className="px-3 py-2 text-[10px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
+          >
+            Payroll
+          </Link>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+          >
+            <Plus size={11} strokeWidth={1.5} />
+            New Event
+          </button>
+        </div>
       </nav>
 
       {/* Hero title */}

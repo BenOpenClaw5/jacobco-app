@@ -20,11 +20,11 @@ interface EventBoardProps { eventId: string; }
 type MobileTab = Stage | 'pool';
 
 const MOBILE_TABS: { id: MobileTab; label: string }[] = [
+  { id: 'pool', label: 'Pool' },
   { id: 'invoice', label: 'Invoice' },
   { id: 'charging', label: 'Charging' },
   { id: 'prepped', label: 'Prepped' },
   { id: 'loaded', label: 'Loaded' },
-  { id: 'pool', label: 'Pool' },
 ];
 
 function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCard[]): DisplayCard[] {
@@ -63,7 +63,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
   const [selectedCard, setSelectedCard] = useState<DisplayCard | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('invoice');
+  const [mobileTab, setMobileTab] = useState<MobileTab>('pool');
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -84,8 +84,11 @@ export default function EventBoard({ eventId }: EventBoardProps) {
 
   function handleCardUpdated(updates: Partial<DisplayCard> & { eventCardId: string }) {
     setDisplayCards(prev => prev.map(card => {
-      if (card.eventCardId !== updates.eventCardId && !(card.eventCardId === undefined && updates.eventCardId)) return card;
-      return { ...card, ...updates };
+      // Match by eventCardId when both have one (normal case)
+      if (card.eventCardId && card.eventCardId === updates.eventCardId) return { ...card, ...updates };
+      // Match by displayId when this card doesn't have an eventCardId yet (new card being saved for the first time)
+      if (!card.eventCardId && updates.displayId && card.displayId === updates.displayId) return { ...card, ...updates };
+      return card;
     }));
     setSelectedCard(prev => prev ? { ...prev, ...updates } : prev);
   }
