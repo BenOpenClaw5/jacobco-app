@@ -45,7 +45,8 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
       reset(); onClose();
     } catch (err) {
       console.error(err);
-      setError('Failed to create event.');
+      const msg = (err as { message?: string })?.message ?? String(err);
+      setError(`Error: ${msg}`);
     } finally { setIsSubmitting(false); }
   }
 
