@@ -11,6 +11,42 @@
   --color-faint: rgba(255,255,255,0.12);
 }
 
+/* ─── Theme CSS Variables ─────────────────────────────────────────────────── */
+
+:root {
+  --bg: #070c0e;
+  --surface: #0c1317;
+  --surface-elevated: #151f28;
+  --border: rgba(255,255,255,0.08);
+  --border-subtle: rgba(255,255,255,0.04);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-muted: rgba(255,255,255,0.28);
+  --nav-bg: rgba(7,12,14,0.97);
+  --nav-border: rgba(255,255,255,0.05);
+  --accent: #D4B85B;
+  --landing-bg: #070c0e;
+  --team-bg: #070c0e;
+  --team-beam-boost: 1;
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f0e8;
+  --surface: #ede8df;
+  --surface-elevated: #e5e0d6;
+  --border: rgba(0,0,0,0.10);
+  --border-subtle: rgba(0,0,0,0.06);
+  --text-primary: #1a1610;
+  --text-secondary: #4a4540;
+  --text-muted: #7a7570;
+  --nav-bg: rgba(245,240,232,0.95);
+  --nav-border: rgba(0,0,0,0.08);
+  --accent: #b8860b;
+  --landing-bg: #1a1610;
+  --team-bg: #f5f0e8;
+  --team-beam-boost: 1.15;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -21,13 +57,14 @@ html {
 }
 
 body {
-  background: #070c0e;
-  color: #ffffff;
+  background: var(--bg);
+  color: var(--text-primary);
   font-family: var(--font-urbanist), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   letter-spacing: 0.01em;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, .display {

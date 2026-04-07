@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { PaletteProvider, usePalette } from '@/lib/commandPaletteContext';
+import { ThemeProvider } from '@/lib/themeContext';
 import CommandPalette from './CommandPalette';
 
 function KeyboardHandler() {
@@ -32,8 +33,10 @@ function ShellInner({ children }: { children: ReactNode }) {
 
 export default function ClientShell({ children }: { children: ReactNode }) {
   return (
-    <PaletteProvider>
-      <ShellInner>{children}</ShellInner>
-    </PaletteProvider>
+    <ThemeProvider>
+      <PaletteProvider>
+        <ShellInner>{children}</ShellInner>
+      </PaletteProvider>
+    </ThemeProvider>
   );
 }

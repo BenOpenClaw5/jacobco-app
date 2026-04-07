@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Command, Search, Menu, X } from 'lucide-react';
+import { Command, Search, Menu, X, Sun, Moon } from 'lucide-react';
 import Logo from './Logo';
 import { usePalette } from '@/lib/commandPaletteContext';
+import { useTheme } from '@/lib/themeContext';
 
 const NAV_LINKS = [
   { href: '/events',    label: 'Events'    },
@@ -26,19 +27,22 @@ const DRAWER_EXTRA = [
 export default function GlobalNav() {
   const pathname = usePathname();
   const { openPalette } = usePalette();
+  const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + '/');
   }
 
+  const isLight = theme === 'light';
+
   return (
     <>
       <header
         className="sticky top-0 z-30"
         style={{
-          background: 'rgba(7,12,14,0.97)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          background: 'var(--nav-bg)',
+          borderBottom: '1px solid var(--nav-border)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -59,8 +63,12 @@ export default function GlobalNav() {
                   className="px-2.5 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light transition-all whitespace-nowrap"
                   style={{
                     fontFamily: 'var(--font-josefin)',
-                    color: active ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.28)',
-                    borderBottom: active ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
+                    color: active
+                      ? 'var(--text-primary)'
+                      : 'var(--text-muted)',
+                    borderBottom: active
+                      ? `1px solid ${isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)'}`
+                      : '1px solid transparent',
                   }}
                 >
                   {link.label}
@@ -75,8 +83,8 @@ export default function GlobalNav() {
               onClick={() => openPalette()}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 transition-opacity hover:opacity-70"
               style={{
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.3)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-muted)',
                 fontFamily: 'var(--font-josefin)',
                 fontSize: '9px',
                 letterSpacing: '0.18em',
@@ -85,21 +93,31 @@ export default function GlobalNav() {
             >
               <Command size={10} strokeWidth={1.5} />
               <span>Command</span>
-              <span style={{ color: 'rgba(255,255,255,0.15)' }}>⌘K</span>
+              <span style={{ opacity: 0.5 }}>⌘K</span>
             </button>
 
             <button
               onClick={() => openPalette()}
               className="sm:hidden flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}
+              style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
             >
               <Search size={12} strokeWidth={1.5} />
+            </button>
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-60"
+              style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {isLight ? <Moon size={12} strokeWidth={1.5} /> : <Sun size={12} strokeWidth={1.5} />}
             </button>
 
             <button
               onClick={() => setMobileOpen(v => !v)}
               className="md:hidden flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-60"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--text-muted)' }}
             >
               {mobileOpen ? <X size={14} strokeWidth={1.5} /> : <Menu size={14} strokeWidth={1.5} />}
             </button>
@@ -110,7 +128,7 @@ export default function GlobalNav() {
         {mobileOpen && (
           <div
             className="md:hidden px-5 pb-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+            style={{ borderTop: '1px solid var(--border-subtle)' }}
           >
             {[...NAV_LINKS, ...DRAWER_EXTRA].map(link => {
               const active = isActive(link.href);
@@ -122,8 +140,8 @@ export default function GlobalNav() {
                   className="block py-3 text-[10px] tracking-[0.22em] uppercase font-light"
                   style={{
                     fontFamily: 'var(--font-josefin)',
-                    color: active ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                    borderBottom: '1px solid var(--border-subtle)',
                   }}
                 >
                   {link.label}

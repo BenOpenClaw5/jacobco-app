@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, Calendar, Package, Search, Command } from 'lucide-react';
-import Logo from '@/components/Logo';
+import GlobalNav from '@/components/GlobalNav';
 import LightingRig from '@/components/LightingRig';
 import { usePalette } from '@/lib/commandPaletteContext';
 
@@ -72,7 +72,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#070c0e', position: 'relative', overflow: 'hidden' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--landing-bg)', position: 'relative', overflow: 'hidden' }}>
       {/* Page-wide background canvas */}
       <canvas
         ref={canvasRef}
@@ -80,29 +80,9 @@ export default function LandingPage() {
       />
 
       {/* Nav */}
-      <header
-        className="relative z-20 flex items-center justify-between px-6 py-5"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-      >
-        <Logo size="sm" asLink={false} />
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => openPalette()}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)', fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase' }}
-          >
-            <Command size={10} strokeWidth={1.5} />
-            <span>⌘K</span>
-          </button>
-          <Link
-            href="/events"
-            className="flex items-center gap-2 px-4 py-2 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-70"
-            style={{ border: '1px solid rgba(255,255,255,0.35)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
-          >
-            Open Board
-          </Link>
-        </div>
-      </header>
+      <div className="relative z-20">
+        <GlobalNav />
+      </div>
 
       {/* Hero — lighting rig lives here */}
       <main

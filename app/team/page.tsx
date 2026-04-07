@@ -6,26 +6,55 @@ import GlobalNav from '@/components/GlobalNav';
 // ─── Team roster ──────────────────────────────────────────────────────────────
 
 const TEAM = [
-  { name: 'Jacob Towe',       titles: ['Chief Executive Officer', 'Founder'] },
-  { name: 'Courtney Towe',    titles: ['Events Manager'] },
-  { name: 'Heather O\'Donovan', titles: ['Chief Financial Officer'] },
-  { name: 'Augustus Delgado', titles: ['Lead Technician', 'Shop Supervisor'] },
-  { name: 'Tommy Freeman',    titles: ['Lead Technician'] },
-  { name: 'Jace Roman',       titles: ['Lead Technician'] },
-  { name: 'Ben Morris',       titles: ['Shop Manager', 'Assistant Technician'] },
-  { name: 'Van Sistare',      titles: ['Shopkeeper', 'Assistant Technician'] },
-  { name: 'Max Iturriaga',    titles: ['Assistant Technician'] },
-  { name: 'Mia Goodwill',     titles: ['Management Assistant'] },
-  { name: 'Abby Towe',        titles: ['Assistant Technician'] },
-  { name: 'Eden Tal',         titles: ['Assistant Technician'] },
+  { name: 'Jacob Towe',         titles: ['Chief Executive Officer', 'Founder'] },
+  { name: 'Courtney Towe',      titles: ['Events Manager'] },
+  { name: "Heather O'Donovan",  titles: ['Chief Financial Officer'] },
+  { name: 'Augustus Delgado',   titles: ['Lead Technician', 'Shop Supervisor'] },
+  { name: 'Tommy Freeman',      titles: ['Lead Technician'] },
+  { name: 'Jace Roman',         titles: ['Lead Technician'] },
+  { name: 'Ben Morris',         titles: ['Shop Manager', 'Assistant Technician'] },
+  { name: 'Van Sistare',        titles: ['Shopkeeper', 'Assistant Technician'] },
+  { name: 'Max Iturriaga',      titles: ['Assistant Technician'] },
+  { name: 'Mia Goodwill',       titles: ['Management Assistant'] },
+  { name: 'Abby Towe',          titles: ['Assistant Technician'] },
+  { name: 'Eden Tal',           titles: ['Assistant Technician'] },
 ];
 
-// ─── Drawing helpers (extracted from LightingRig) ────────────────────────────
+// ─── Canvas constants ─────────────────────────────────────────────────────────
 
-function rRect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number, r: number,
-) {
+const CW = 600;   // canvas coordinate width
+const CH = 240;   // canvas coordinate height
+const FX_X = 300; // fixture center X (canvas coords)
+const FX_Y = 52;  // fixture center Y (canvas coords)
+
+// Fixture geometry (local coords, drawn horizontal, rotated π/2 to point down)
+const BASE_W  = 22;  // local X extent
+const BASE_H  = 28;  // local Y extent (= on-screen width after rotation)
+const NECK_W  = 18;
+const NECK_H  = 10;
+const HEAD_R  = 16;
+const TOTAL_LEN = BASE_W + NECK_W + HEAD_R * 2.5; // 22+18+40 = 80
+
+// Lens position in local coords → LENS_Y on screen
+const _baseX  = -TOTAL_LEN / 2; // -40
+const _neckX  = _baseX + BASE_W; // -18
+const _headCX = _neckX + NECK_W + HEAD_R * 0.6; // -18+18+9.6 = 9.6
+const _faceX  = _headCX + HEAD_R * 0.15; // 9.6+2.4 = 12
+const LENS_Y  = FX_Y + _faceX; // 52 + 12 = 64
+
+// Beam
+const BEAM_START = LENS_Y;
+const BEAM_END   = 190;  // terminates at name text center
+const BEAM_LEN   = BEAM_END - BEAM_START; // 126
+
+// Breathe
+const BREATHE_PERIOD = 4500;
+const BREATHE_AMP    = 0.10;
+const FADE_MS        = 500;
+
+// ─── Rounded rect helper ──────────────────────────────────────────────────────
+
+function rRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   const cr = Math.min(Math.abs(r), Math.abs(w) / 2, Math.abs(h) / 2);
   ctx.beginPath();
   ctx.moveTo(x + cr, y);
@@ -40,276 +69,312 @@ function rRect(
   ctx.closePath();
 }
 
-// Pinspot drawn horizontal, head at +X. angle=π/2 makes head point DOWN.
+// ─── Pinspot fixture ──────────────────────────────────────────────────────────
+
 function drawPinspot(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   angle: number,
-  s: number,
   intensity: number,
 ) {
   if (intensity < 0.005) return;
-
-  const totalLen = 42 * s;
-  const baseW    = 14 * s;
-  const baseH    = 11 * s;
-  const neckW    = 10 * s;
-  const neckH    =  4 * s;
-  const headR    =  8 * s;
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, intensity);
   ctx.translate(x, y);
   ctx.rotate(angle);
 
-  const baseX = -totalLen / 2;
-  const baseY = -baseH / 2;
+  const baseX = -TOTAL_LEN / 2; // -40
+  const baseY = -BASE_H / 2;    // -14
 
+  // Drop shadow
   ctx.shadowColor   = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur    = 6;
+  ctx.shadowBlur    = 8;
   ctx.shadowOffsetX = 1;
   ctx.shadowOffsetY = 2;
 
   // Base
-  const baseGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + baseH);
+  const baseGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + BASE_H);
   baseGrad.addColorStop(0.0, '#d8d8d8');
   baseGrad.addColorStop(0.3, '#b8b8b8');
   baseGrad.addColorStop(0.7, '#989898');
   baseGrad.addColorStop(1.0, '#787878');
   ctx.fillStyle = baseGrad;
-  rRect(ctx, baseX, baseY, baseW, baseH, 2 * s);
+  rRect(ctx, baseX, baseY, BASE_W, BASE_H, 3);
   ctx.fill();
 
   // Neck
-  const neckX = baseX + baseW;
-  const neckY = -neckH / 2;
-  const neckGrad = ctx.createLinearGradient(neckX, neckY, neckX, neckY + neckH);
+  const neckX = baseX + BASE_W; // -18
+  const neckY = -NECK_H / 2;   // -5
+  const neckGrad = ctx.createLinearGradient(neckX, neckY, neckX, neckY + NECK_H);
   neckGrad.addColorStop(0.0, '#c8c8c8');
   neckGrad.addColorStop(0.5, '#a0a0a0');
   neckGrad.addColorStop(1.0, '#808080');
   ctx.fillStyle = neckGrad;
-  rRect(ctx, neckX, neckY, neckW, neckH, s);
+  rRect(ctx, neckX, neckY, NECK_W, NECK_H, 2);
   ctx.fill();
 
   // Head
-  const headCX = neckX + neckW + headR * 0.6;
+  const headCX = neckX + NECK_W + HEAD_R * 0.6; // 9.6
   const headGrad = ctx.createRadialGradient(
-    headCX - headR * 0.3, -headR * 0.3, 0,
-    headCX, 0, headR,
+    headCX - HEAD_R * 0.3, -HEAD_R * 0.3, 0,
+    headCX, 0, HEAD_R,
   );
   headGrad.addColorStop(0.0, '#e0e0e0');
   headGrad.addColorStop(0.5, '#b0b0b0');
-  headGrad.addColorStop(1.0, '#707070');
+  headGrad.addColorStop(1.0, '#606060');
   ctx.fillStyle = headGrad;
   ctx.beginPath();
-  ctx.arc(headCX, 0, headR, 0, Math.PI * 2);
+  ctx.arc(headCX, 0, HEAD_R, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
   // Base specular
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 0.75;
-  ctx.beginPath(); ctx.moveTo(baseX + 2 * s, baseY + s); ctx.lineTo(baseX + baseW - 2 * s, baseY + s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(baseX + 3, baseY + 2); ctx.lineTo(baseX + BASE_W - 3, baseY + 2); ctx.stroke();
 
   // Head rim
-  ctx.strokeStyle = 'rgba(60,60,60,0.5)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(headCX, 0, headR, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(50,50,50,0.5)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(headCX, 0, HEAD_R, 0, Math.PI * 2); ctx.stroke();
 
-  // Head specular
-  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(headCX, 0, headR - 1.5 * s, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
+  // Head specular arc
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(headCX, 0, HEAD_R - 2, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
 
-  // Face / lens
-  const faceX = headCX + headR * 0.15;
-  ctx.fillStyle = '#555';
-  ctx.beginPath(); ctx.arc(faceX, 0, headR * 0.72, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#333';
-  ctx.beginPath(); ctx.arc(faceX, 0, headR * 0.58, 0, Math.PI * 2); ctx.fill();
+  // Lens face outer ring
+  const faceX = headCX + HEAD_R * 0.15; // 12
+  ctx.fillStyle = '#444';
+  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 0.75, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#282828';
+  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 0.60, 0, Math.PI * 2); ctx.fill();
 
-  const lg = ctx.createRadialGradient(faceX, 0, 0, faceX, 0, headR * 0.48);
-  lg.addColorStop(0.00, 'rgba(255,248,220,1.0)');
-  lg.addColorStop(0.35, 'rgba(255,225,150,0.9)');
-  lg.addColorStop(0.70, 'rgba(255,190,80,0.6)');
-  lg.addColorStop(1.00, 'rgba(255,160,40,0)');
-  ctx.fillStyle = lg;
-  ctx.beginPath(); ctx.arc(faceX, 0, headR * 0.48, 0, Math.PI * 2); ctx.fill();
+  // Lens aperture glow
+  const LENS_R = 10;
+  const lensGrad = ctx.createRadialGradient(faceX, 0, 0, faceX, 0, LENS_R);
+  lensGrad.addColorStop(0.00, 'rgba(255,252,230,1.0)');
+  lensGrad.addColorStop(0.25, 'rgba(255,235,160,0.95)');
+  lensGrad.addColorStop(0.60, 'rgba(255,200,90,0.7)');
+  lensGrad.addColorStop(1.00, 'rgba(255,170,50,0)');
+  ctx.fillStyle = lensGrad;
+  ctx.beginPath(); ctx.arc(faceX, 0, LENS_R, 0, Math.PI * 2); ctx.fill();
 
+  // Outer lens halo (pulses with breathe via globalAlpha)
+  const haloGrad = ctx.createRadialGradient(faceX, 0, LENS_R, faceX, 0, HEAD_R * 1.6);
+  haloGrad.addColorStop(0.0, `rgba(255,210,100,${0.35 * intensity})`);
+  haloGrad.addColorStop(1.0, 'rgba(255,190,60,0)');
+  ctx.globalAlpha = 1; // halo drawn at full alpha, uses intensity directly
+  ctx.fillStyle = haloGrad;
+  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 1.6, 0, Math.PI * 2); ctx.fill();
+
+  // Lens hot-spot
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.beginPath(); ctx.arc(faceX, 0, headR * 0.12, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(faceX - 1, -1, HEAD_R * 0.12, 0, Math.PI * 2); ctx.fill();
 
   ctx.restore();
 }
 
-// Downward beam from lens (used in team page — pinspot aimed down)
-function drawTeamBeam(
+// ─── Atmospheric beam + haze pool ─────────────────────────────────────────────
+
+const BEAM_LAYERS = [
+  { hwSrc:  2, hwTerm:  20, r: 255, g: 240, b: 180, peak: 0.45 },
+  { hwSrc:  4, hwTerm:  40, r: 255, g: 220, b: 140, peak: 0.28 },
+  { hwSrc:  7, hwTerm:  65, r: 255, g: 200, b: 100, peak: 0.18 },
+  { hwSrc: 10, hwTerm:  95, r: 255, g: 180, b:  80, peak: 0.10 },
+  { hwSrc: 15, hwTerm: 130, r: 255, g: 160, b:  60, peak: 0.06 },
+  { hwSrc: 25, hwTerm: 170, r: 255, g: 140, b:  40, peak: 0.035 },
+  { hwSrc:  0, hwTerm: 210, r: 255, g: 120, b:  30, peak: 0.015 },
+];
+
+const DUST_STREAKS = [
+  { dx: -18, angleDeg:  1.5, opacity: 0.06, y1: 0.05, y2: 0.82 },
+  { dx:  22, angleDeg: -1.0, opacity: 0.05, y1: 0.10, y2: 0.76 },
+  { dx:  -5, angleDeg:  0.8, opacity: 0.04, y1: 0.18, y2: 0.90 },
+  { dx:  35, angleDeg: -1.8, opacity: 0.07, y1: 0.07, y2: 0.68 },
+];
+
+function drawAtmosphericBeam(
   ctx: CanvasRenderingContext2D,
-  lx: number, ly: number,
-  ch: number,
+  cx: number,
+  beamStart: number,
+  beamEnd: number,
+  beamLen: number,
   intensity: number,
 ) {
-  if (intensity < 0.005) return;
-  const beamLen = ch - ly;
-  if (beamLen <= 0) return;
+  if (intensity < 0.005 || beamLen <= 0) return;
 
-  const layers = [
-    { degHalf: 7,  peak: 0.22 },
-    { degHalf: 15, peak: 0.10 },
-    { degHalf: 26, peak: 0.04 },
-  ];
+  // 7-layer atmospheric beam
+  for (const layer of BEAM_LAYERS) {
+    const x1 = cx - layer.hwSrc;
+    const x2 = cx + layer.hwSrc;
+    const x3 = cx + layer.hwTerm;
+    const x4 = cx - layer.hwTerm;
 
-  for (const layer of layers) {
-    const hw = Math.tan(layer.degHalf * Math.PI / 180) * beamLen;
     ctx.beginPath();
-    ctx.moveTo(lx, ly);
-    ctx.lineTo(lx + hw, ly + beamLen);
-    ctx.lineTo(lx - hw, ly + beamLen);
+    ctx.moveTo(x1, beamStart);
+    ctx.lineTo(x2, beamStart);
+    ctx.lineTo(x3, beamEnd);
+    ctx.lineTo(x4, beamEnd);
     ctx.closePath();
-    const grad = ctx.createLinearGradient(lx, ly, lx, ly + beamLen);
+
     const a = layer.peak * intensity;
-    grad.addColorStop(0.00, `rgba(255,240,190,${a * 0.65})`);
-    grad.addColorStop(0.08, `rgba(255,215,120,${a * 1.00})`);
-    grad.addColorStop(0.35, `rgba(255,200,100,${a * 0.55})`);
-    grad.addColorStop(0.70, `rgba(220,175, 80,${a * 0.15})`);
-    grad.addColorStop(1.00, 'rgba(0,0,0,0)');
+    const grad = ctx.createLinearGradient(cx, beamStart, cx, beamEnd);
+    grad.addColorStop(0.00, `rgba(${layer.r},${layer.g},${layer.b},${a})`);
+    grad.addColorStop(0.55, `rgba(${layer.r},${layer.g},${layer.b},${a * 0.35})`);
+    grad.addColorStop(1.00, `rgba(${layer.r},${layer.g},${layer.b},0)`);
     ctx.fillStyle = grad;
     ctx.fill();
   }
+
+  // Haze pool at terminus — elliptical warm glow where light "pools" on the name
+  ctx.save();
+  ctx.translate(cx, beamEnd);
+  ctx.scale(1, 32 / 190);
+  const poolGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 190);
+  poolGrad.addColorStop(0.00, `rgba(255,205,100,${0.18 * intensity})`);
+  poolGrad.addColorStop(0.45, `rgba(255,185,70,${0.09 * intensity})`);
+  poolGrad.addColorStop(1.00, 'rgba(255,160,40,0)');
+  ctx.fillStyle = poolGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 190, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Dust streaks — thin particle lines inside the beam
+  for (const s of DUST_STREAKS) {
+    const angleRad = (s.angleDeg * Math.PI) / 180;
+    const dy1 = beamLen * s.y1;
+    const dy2 = beamLen * s.y2;
+    const sx1 = cx + s.dx + Math.tan(angleRad) * dy1;
+    const sy1 = beamStart + dy1;
+    const sx2 = cx + s.dx + Math.tan(angleRad) * dy2;
+    const sy2 = beamStart + dy2;
+
+    ctx.save();
+    ctx.globalAlpha = s.opacity * intensity;
+    ctx.strokeStyle = 'rgba(255,240,180,1)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(sx1, sy1);
+    ctx.lineTo(sx2, sy2);
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
-// ─── Per-person canvas component ──────────────────────────────────────────────
+// ─── Per-person canvas ────────────────────────────────────────────────────────
 
-const CANVAS_W = 300;
-const CANVAS_H = 95;
-const FX_X     = 150; // center of canvas
-const FX_Y     = 38;  // fixture center y
-const SCALE    = 0.82;
-const BREATHE_PERIOD = 4000;
-const BREATHE_AMP    = 0.08;
-const FADE_MS        = 320;
-
-// Precompute lens Y (head is at +X local, rotated π/2 → head at +Y world)
-// lensLocalX = headCX + headR*0.15
-// with scale: headCX = -(42s/2) + 14s + 10s + 8s*0.6 = -21s + 14s + 10s + 4.8s = 7.8s
-// lensLocalX = 7.8s + 8s*0.15 = 7.8s + 1.2s = 9s
-// world: lensX = FX_X + cos(π/2)*(9s) = FX_X + 0 = FX_X
-//         lensY = FX_Y + sin(π/2)*(9s) = FX_Y + 9s
-const LENS_Y = FX_Y + 9 * SCALE;
-
-function TeamPinspotCanvas({ index }: { index: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef    = useRef(0);
+function TeamPinspotCanvas({ index, triggered }: { index: number; triggered: boolean }) {
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const rafRef      = useRef(0);
   const fadeStartRef = useRef(0);
-  const startedRef   = useRef(false);
+  const startedRef  = useRef(false);
 
   useEffect(() => {
+    if (!triggered || startedRef.current) return;
+    startedRef.current = true;
+    fadeStartRef.current = performance.now();
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const angle = Math.PI / 2; // aimed straight down
-
     function drawFrame(ts: number) {
       if (!canvas || !ctx) return;
-      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.clearRect(0, 0, CW, CH);
 
       const fadeElapsed = ts - fadeStartRef.current;
       const fadeT = Math.min(1, fadeElapsed / FADE_MS);
-      const fadeI = 1 - Math.pow(1 - fadeT, 2); // ease-out
+      const fadeI = 1 - Math.pow(1 - fadeT, 2.2); // ease-out
 
-      const breathe = 1 + Math.sin((ts / BREATHE_PERIOD) * 2 * Math.PI + index * 0.7) * BREATHE_AMP;
+      const phase = (index * 0.85) % (Math.PI * 2);
+      const breathe = 1 + Math.sin((ts / BREATHE_PERIOD) * 2 * Math.PI + phase) * BREATHE_AMP;
       const intensity = fadeI * breathe;
 
-      // Draw beam first (behind fixture)
-      drawTeamBeam(ctx, FX_X, LENS_Y, CANVAS_H, intensity);
-      // Draw pinspot on top
-      drawPinspot(ctx, FX_X, FX_Y, angle, SCALE, intensity);
+      // Beam first (behind fixture)
+      drawAtmosphericBeam(ctx, FX_X, BEAM_START, BEAM_END, BEAM_LEN, intensity);
+      // Fixture on top
+      drawPinspot(ctx, FX_X, FX_Y, Math.PI / 2, intensity);
 
       rafRef.current = requestAnimationFrame(drawFrame);
     }
 
-    // Intersection Observer — start animation when section enters viewport
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting && !startedRef.current) {
-          startedRef.current = true;
-          fadeStartRef.current = performance.now();
-          rafRef.current = requestAnimationFrame(drawFrame);
-        }
-      }
-    }, { threshold: 0.25 });
+    rafRef.current = requestAnimationFrame(drawFrame);
 
-    observer.observe(canvas);
-
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, [index]);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [triggered, index]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={CANVAS_W}
-      height={CANVAS_H}
-      style={{ width: '100%', height: `${CANVAS_H}px`, display: 'block', pointerEvents: 'none' }}
+      width={CW}
+      height={CH}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: `${CH}px`,
+        display: 'block',
+        pointerEvents: 'none',
+      }}
     />
   );
 }
 
 // ─── Per-person section ───────────────────────────────────────────────────────
 
-function TeamMember({
-  name, titles, index,
-}: { name: string; titles: string[]; index: number }) {
-  const sectionRef  = useRef<HTMLDivElement>(null);
+function TeamMember({ name, titles, index }: { name: string; titles: string[]; index: number }) {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [triggered, setTriggered] = useState(false);
 
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.2 },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          setTriggered(true);
+        }
+      },
+      { threshold: 0.15 },
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
+  const nameGlow = visible
+    ? '0 0 40px rgba(255,200,100,0.35), 0 0 80px rgba(255,170,60,0.20), 0 0 120px rgba(255,140,40,0.10)'
+    : 'none';
+
   return (
     <div
       ref={sectionRef}
+      className="min-h-[280px] sm:min-h-[320px]"
       style={{
-        padding: '64px 0 60px',
+        position: 'relative',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         textAlign: 'center',
+        paddingBottom: '64px',
+        overflow: 'hidden',
       }}
     >
-      {/* Canvas: pinspot + beam */}
-      <div style={{ position: 'relative', marginBottom: '0' }}>
-        <TeamPinspotCanvas index={index} />
-        {/* Ambient glow that bleeds onto the name below */}
-        <div
-          className="breathe-glow"
-          style={{
-            position: 'absolute',
-            bottom: '-18px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '160px',
-            height: '50px',
-            background: 'radial-gradient(ellipse at 50% 30%, rgba(255,210,120,0.13) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-      </div>
+      {/* Atmospheric canvas — absolute, covers the full section top */}
+      <TeamPinspotCanvas index={index} triggered={triggered} />
 
-      {/* Name + titles */}
+      {/* Name + titles — sit on top of the canvas in the warm light pool */}
       <div
         style={{
-          transform: visible ? 'translateY(0)' : 'translateY(14px)',
+          position: 'relative',
+          zIndex: 2,
+          paddingTop: '152px',
+          transform: visible ? 'translateY(0)' : 'translateY(16px)',
           opacity: visible ? 1 : 0,
-          transition: 'transform 420ms cubic-bezier(0.16,1,0.3,1) 150ms, opacity 420ms ease 150ms',
+          transition: 'transform 500ms cubic-bezier(0.16,1,0.3,1) 200ms, opacity 500ms ease 200ms',
         }}
       >
         <h2
@@ -317,15 +382,17 @@ function TeamMember({
             fontSize: 'clamp(22px, 4vw, 30px)',
             fontWeight: 300,
             letterSpacing: '0.06em',
-            color: '#ffffff',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-josefin)',
-            marginBottom: '10px',
+            marginBottom: '12px',
             lineHeight: 1.2,
+            textShadow: nameGlow,
+            transition: 'text-shadow 800ms ease 300ms',
           }}
         >
           {name}
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
           {titles.map((title, ti) => (
             <span
               key={ti}
@@ -334,7 +401,7 @@ function TeamMember({
                 fontWeight: 300,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--text-muted)',
                 fontFamily: 'var(--font-josefin)',
               }}
             >
@@ -351,8 +418,8 @@ function TeamMember({
 
 export default function TeamPage() {
   return (
-    <div style={{ background: '#070c0e', minHeight: '100vh' }}>
-      {/* Subtle grain overlay */}
+    <div style={{ background: 'var(--team-bg)', minHeight: '100vh' }}>
+      {/* Grain overlay */}
       <div
         style={{
           position: 'fixed',
@@ -383,7 +450,7 @@ export default function TeamPage() {
               fontSize: '9px',
               letterSpacing: '0.4em',
               textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--text-muted)',
               fontFamily: 'var(--font-josefin)',
               marginBottom: '14px',
             }}
@@ -395,7 +462,7 @@ export default function TeamPage() {
               fontSize: 'clamp(32px, 6vw, 52px)',
               fontWeight: 100,
               letterSpacing: '0.12em',
-              color: '#ffffff',
+              color: 'var(--text-primary)',
               fontFamily: 'var(--font-josefin)',
               lineHeight: 1.1,
             }}
@@ -404,14 +471,8 @@ export default function TeamPage() {
           </h1>
         </div>
 
-        {/* Team members */}
-        <div
-          style={{
-            maxWidth: '580px',
-            margin: '0 auto',
-            padding: '0 24px',
-          }}
-        >
+        {/* Team list */}
+        <div style={{ maxWidth: '580px', margin: '0 auto', padding: '0 24px' }}>
           {TEAM.map((member, i) => (
             <TeamMember
               key={member.name}
@@ -422,7 +483,6 @@ export default function TeamPage() {
           ))}
         </div>
 
-        {/* Footer space */}
         <div style={{ height: '80px' }} />
       </div>
     </div>

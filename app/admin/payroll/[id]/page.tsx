@@ -36,11 +36,32 @@ interface Reimbursement {
   receipt_storage_path: string;
 }
 
-const STATUS_OPTIONS = [
-  { value: 'submitted',     label: 'Submitted',      color: 'rgba(120,180,220,0.7)' },
-  { value: 'reviewed',      label: 'Reviewed',        color: 'rgba(120,200,140,0.7)' },
-  { value: 'needs_followup',label: 'Needs Follow-up', color: 'rgba(220,160,80,0.7)'  },
-];
+const ACTION_BUTTONS = [
+  { value: 'reviewed',      label: 'Mark as Reviewed' },
+  { value: 'needs_followup', label: 'Needs Follow-up' },
+] as const;
+
+const SELECTED_BTN_STYLES: Record<string, React.CSSProperties> = {
+  reviewed: {
+    background: 'rgba(34,197,94,0.12)',
+    border: '1px solid rgba(34,197,94,0.6)',
+    color: 'rgb(34,197,94)',
+    boxShadow: '0 0 8px rgba(34,197,94,0.2)',
+  },
+  needs_followup: {
+    background: 'rgba(251,146,60,0.12)',
+    border: '1px solid rgba(251,146,60,0.6)',
+    color: 'rgb(251,146,60)',
+    boxShadow: '0 0 8px rgba(251,146,60,0.2)',
+  },
+};
+
+const UNSELECTED_BTN_STYLE: React.CSSProperties = {
+  background: 'transparent',
+  border: '1px solid rgba(255,255,255,0.12)',
+  color: 'rgba(255,255,255,0.28)',
+  boxShadow: 'none',
+};
 
 // ─── Review Note Modal ────────────────────────────────────────────────────────
 
@@ -307,24 +328,29 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Status */}
             <section>
-              <div style={LABEL}>Status <span style={{ opacity: 0.4, fontWeight: 200, fontSize: '9px' }}>(click current to unmark)</span></div>
+              <div style={LABEL}>
+                Status
+                <span style={{ opacity: 0.4, fontWeight: 200, fontSize: '9px', marginLeft: '8px' }}>
+                  — {submission.status === 'reviewed' ? 'Reviewed' : submission.status === 'needs_followup' ? 'Needs Follow-up' : 'Pending'} · click active to unmark
+                </span>
+              </div>
               <div className="flex gap-2 flex-wrap">
-                {STATUS_OPTIONS.map(opt => {
-                  const isActive = submission.status === opt.value;
+                {ACTION_BUTTONS.map(btn => {
+                  const isActive = submission.status === btn.value;
+                  const btnStyle = isActive ? SELECTED_BTN_STYLES[btn.value] : UNSELECTED_BTN_STYLE;
                   return (
                     <button
-                      key={opt.value}
-                      onClick={() => handleStatusChange(opt.value)}
+                      key={btn.value}
+                      onClick={() => handleStatusChange(btn.value)}
                       disabled={savingStatus}
-                      className="px-3 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light transition-all"
+                      className="px-3 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light"
                       style={{
                         fontFamily: 'var(--font-josefin)',
-                        border: `1px solid ${opt.color}${isActive ? '' : '40'}`,
-                        color: isActive ? opt.color : 'rgba(255,255,255,0.2)',
-                        background: isActive ? `${opt.color}12` : 'transparent',
+                        transition: 'all 100ms ease',
+                        ...btnStyle,
                       }}
                     >
-                      {opt.label}
+                      {btn.label}
                     </button>
                   );
                 })}
