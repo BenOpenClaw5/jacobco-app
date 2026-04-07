@@ -1,45 +1,29 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, Calendar, Package, Search, Command } from 'lucide-react';
 import Logo from '@/components/Logo';
+import LightingRig from '@/components/LightingRig';
 import { usePalette } from '@/lib/commandPaletteContext';
 
 const TILES = [
-  { href: '/events',    label: 'Events Board',    sub: 'Manage production stages',       icon: null,     delay: 0    },
-  { href: '/calendar',  label: 'Calendar',         sub: 'View by date & shop',            icon: Calendar, delay: 0.06 },
-  { href: '/inventory', label: 'Inventory',        sub: 'Orlando & Dallas case status',   icon: Package,  delay: 0.12 },
-  { href: '/lookup',    label: 'Case Lookup',      sub: 'Find any case instantly',        icon: Search,   delay: 0.18 },
+  { href: '/events',    label: 'Events Board',  sub: 'Manage production stages',     icon: null,     delay: 0    },
+  { href: '/calendar',  label: 'Calendar',       sub: 'View by date & shop',          icon: Calendar, delay: 0.06 },
+  { href: '/inventory', label: 'Inventory',      sub: 'Orlando & Dallas case status', icon: Package,  delay: 0.12 },
+  { href: '/lookup',    label: 'Case Lookup',    sub: 'Find any case instantly',      icon: Search,   delay: 0.18 },
 ];
 
-function useCountUp(target: number, duration = 1800) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    let start: number;
-    const step = (ts: number) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      setVal(Math.round(p * target));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    const id = setTimeout(() => requestAnimationFrame(step), 600);
-    return () => clearTimeout(id);
-  }, [target, duration]);
-  return val;
-}
-
-function StatNumber({ n, suffix = '' }: { n: number; suffix?: string }) {
-  const v = useCountUp(n);
-  return <span>{v}{suffix}</span>;
-}
+// Ignition sequence ends at: 450ms + 5 * 175ms + 170ms ≈ 1490ms
+// Text glow begins at ~1.5s after mount
+const GLOW_DELAY = 1.5;
 
 export default function LandingPage() {
   const { openPalette } = usePalette();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Subtle animated grid / scan-line
+  // Background dot grid + slow radial sweep
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -58,8 +42,7 @@ export default function LandingPage() {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Subtle dot grid
-      ctx.fillStyle = 'rgba(255,255,255,0.025)';
+      ctx.fillStyle = 'rgba(255,255,255,0.022)';
       const spacing = 40;
       for (let x = 0; x < canvas.width; x += spacing) {
         for (let y = 0; y < canvas.height; y += spacing) {
@@ -69,11 +52,11 @@ export default function LandingPage() {
         }
       }
 
-      // Slow moving radial gradient highlight
-      const cx = canvas.width / 2 + Math.sin(t * 0.0003) * canvas.width * 0.15;
-      const cy = canvas.height / 2 + Math.cos(t * 0.0002) * canvas.height * 0.1;
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(canvas.width, canvas.height) * 0.6);
-      grad.addColorStop(0, 'rgba(70,120,160,0.06)');
+      const cx = canvas.width  / 2 + Math.sin(t * 0.00028) * canvas.width  * 0.14;
+      const cy = canvas.height / 2 + Math.cos(t * 0.00020) * canvas.height * 0.10;
+      const r  = Math.max(canvas.width, canvas.height) * 0.6;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, 'rgba(60,110,150,0.055)');
       grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -90,7 +73,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#070c0e', position: 'relative', overflow: 'hidden' }}>
-      {/* Animated canvas background */}
+      {/* Page-wide background canvas */}
       <canvas
         ref={canvasRef}
         style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
@@ -121,113 +104,136 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center" style={{ minHeight: '80vh' }}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          style={{ marginBottom: '20px' }}
-        >
-          <div style={{ width: '1px', height: '60px', background: 'rgba(255,255,255,0.08)', margin: '0 auto' }} />
-        </motion.div>
+      {/* Hero — lighting rig lives here */}
+      <main
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center"
+        style={{ minHeight: '80vh', position: 'relative', overflow: 'hidden' }}
+      >
+        {/* 3D Lighting Rig — renders behind all text */}
+        <LightingRig />
 
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          style={{ fontSize: '9px', letterSpacing: '0.55em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '28px' }}
-        >
-          Jacob Co · Event Lighting
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: '#ffffff', lineHeight: 1.05, marginBottom: '0' }}
-          className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
-        >
-          Production
-        </motion.h1>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] }}
-          style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', lineHeight: 1.05, marginBottom: '36px' }}
-          className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
-        >
-          Operations
-        </motion.h1>
-
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          style={{ width: '60px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '0 auto 28px' }}
-        />
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', letterSpacing: '0.04em', maxWidth: '340px', lineHeight: 1.7, marginBottom: '48px' }}
-        >
-          Multi-location event lighting management for Orlando &amp; Dallas
-        </motion.p>
-
-        {/* Primary CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.05 }}
-          className="flex flex-col sm:flex-row items-center gap-3 mb-20"
-        >
-          <Link
-            href="/events"
-            className="flex items-center gap-2.5 px-8 py-3.5 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity hover:opacity-70"
-            style={{ border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+        {/* All text content sits above the rig at z-index: 10 */}
+        <div className="relative flex flex-col items-center" style={{ zIndex: 10 }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            style={{ marginBottom: '20px' }}
           >
-            Open Board
-            <ArrowRight size={11} strokeWidth={1.5} />
-          </Link>
-          <button
-            onClick={() => openPalette()}
-            className="flex items-center gap-2 px-6 py-3.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
-          >
-            <Command size={11} strokeWidth={1.5} />
-            Command
-          </button>
-        </motion.div>
+            <div style={{ width: '1px', height: '60px', background: 'rgba(255,255,255,0.08)', margin: '0 auto' }} />
+          </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-          className="flex items-center gap-8 sm:gap-12"
-        >
-          {[
-            { n: 2,  label: 'Shops',   suffix: '' },
-            { n: 62, label: 'Cases',   suffix: '' },
-            { n: 12, label: 'Commands', suffix: '' },
-          ].map(({ n, label, suffix }) => (
-            <div key={label} className="text-center">
-              <div
-                style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}
-              >
-                <StatNumber n={n} suffix={suffix} />
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            style={{ fontSize: '9px', letterSpacing: '0.55em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '28px' }}
+          >
+            Jacob Co Creative
+          </motion.div>
+
+          {/* "Production" — warms to a lit glow once lights fire */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(255,210,120,0)', '0 0 60px rgba(255,210,120,0.28)'] }}
+            transition={{
+              opacity: { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
+              y:       { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
+              textShadow: { duration: 1.4, delay: GLOW_DELAY, ease: 'easeOut' },
+            }}
+            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: '#ffffff', lineHeight: 1.05, marginBottom: 0 }}
+            className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
+          >
+            Production
+          </motion.h1>
+
+          {/* "Operations" — slightly cooler glow tone */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(220,200,255,0)', '0 0 70px rgba(220,200,255,0.18)'] }}
+            transition={{
+              opacity: { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
+              y:       { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
+              textShadow: { duration: 1.6, delay: GLOW_DELAY + 0.1, ease: 'easeOut' },
+            }}
+            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', lineHeight: 1.05, marginBottom: '36px' }}
+            className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
+          >
+            Operations
+          </motion.h1>
+
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+            style={{ width: '60px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '0 auto 28px' }}
+          />
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+            style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', letterSpacing: '0.04em', maxWidth: '340px', lineHeight: 1.7, marginBottom: '48px' }}
+          >
+            Multi-location production management for Orlando &amp; Dallas
+          </motion.p>
+
+          {/* Primary CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.05 }}
+            className="flex flex-col sm:flex-row items-center gap-3 mb-20"
+          >
+            <Link
+              href="/events"
+              className="flex items-center gap-2.5 px-8 py-3.5 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity hover:opacity-70"
+              style={{ border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+            >
+              Open Board
+              <ArrowRight size={11} strokeWidth={1.5} />
+            </Link>
+            <button
+              onClick={() => openPalette()}
+              className="flex items-center gap-2 px-6 py-3.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+              style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+            >
+              <Command size={11} strokeWidth={1.5} />
+              Command
+            </button>
+          </motion.div>
+
+          {/* Stats — 2 only */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="flex items-center gap-12 sm:gap-16"
+          >
+            {/* Stat 1: 2 Shops */}
+            <div className="text-center">
+              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
+                2
               </div>
-              <div
-                style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}
-              >
-                {label}
+              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
+                Shops
               </div>
             </div>
-          ))}
-        </motion.div>
+
+            {/* Divider */}
+            <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.07)' }} />
+
+            {/* Stat 2: ∞ Destinations */}
+            <div className="text-center">
+              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, fontVariantNumeric: 'normal' }}>
+                ∞
+              </div>
+              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
+                Destinations
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </main>
 
       {/* Quick access tiles */}
@@ -265,9 +271,7 @@ export default function LandingPage() {
                   >
                     {tile.label}
                   </div>
-                  <div
-                    style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}
-                  >
+                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
                     {tile.sub}
                   </div>
                 </Link>

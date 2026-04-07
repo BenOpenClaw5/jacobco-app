@@ -38,7 +38,7 @@ export default function Logo({ size = 'md', asLink = true }: LogoProps) {
           className={`${c.sub} tracking-[0.3em] uppercase leading-none mt-1`}
           style={{ color: 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
         >
-          Event Lighting
+          Creative
         </span>
       </div>
     </div>

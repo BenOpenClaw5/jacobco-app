@@ -19,7 +19,7 @@ const urbanist = Urbanist({
 
 export const metadata: Metadata = {
   title: 'Jacob Co — Production Operations',
-  description: 'Multi-location event lighting production management for Orlando & Dallas',
+  description: 'Jacob Co Creative — production operations for Orlando & Dallas',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
