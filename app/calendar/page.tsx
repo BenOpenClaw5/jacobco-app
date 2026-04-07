@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, List, Grid3X3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, List, Grid3X3, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -35,6 +35,48 @@ function daysBetween(a: Date, b: Date) {
   return Math.round((b.getTime()-a.getTime())/86400000);
 }
 
+function ArchiveConfirm({ event, onConfirm, onCancel, isDeleting }: {
+  event: Event; onConfirm: () => void; onCancel: () => void; isDeleting: boolean;
+}) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
+      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
+      <motion.div
+        className="relative w-full max-w-xs p-8"
+        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+      >
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          Archive Event?
+        </h3>
+        <p className="text-xs font-light mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+          This hides the event from the board and calendar.
+        </p>
+        <p className="text-sm font-light mb-4" style={{ color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+          &quot;{event.name}&quot;
+        </p>
+        <div className="h-px mb-5" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={isDeleting}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,100,100,0.3)', color: 'rgba(255,110,110,0.8)', fontFamily: 'var(--font-josefin)' }}>
+            {isDeleting && <Loader2 size={10} className="animate-spin" />}
+            {isDeleting ? 'Archiving' : 'Archive'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function CalendarPage() {
   const router = useRouter();
   const today = new Date();
@@ -45,14 +87,29 @@ export default function CalendarPage() {
   const [shopFilter, setShopFilter] = useState<Shop | 'all'>('all');
   const [view, setView]     = useState<'month' | 'agenda'>('month');
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
+  const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
+  const [isDeleting, setIsDeleting]       = useState(false);
 
   useEffect(() => {
-    supabase.from('events').select('*').order('event_start_date', { ascending: true })
+    supabase.from('events').select('*')
+      .is('archived_at', null)
+      .order('event_start_date', { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) setEvents(data as Event[]);
         setLoading(false);
       });
   }, []);
+
+  async function handleArchiveConfirm() {
+    if (!deletingEvent) return;
+    setIsDeleting(true);
+    try {
+      await supabase.from('events').update({ archived_at: new Date().toISOString() }).eq('id', deletingEvent.id);
+      setEvents(prev => prev.filter(e => e.id !== deletingEvent.id));
+      setDeletingEvent(null);
+    } catch (err) { console.error(err); }
+    finally { setIsDeleting(false); }
+  }
 
   function prevMonth() {
     if (month === 0) { setMonth(11); setYear(y => y-1); }
@@ -190,21 +247,31 @@ export default function CalendarPage() {
                           <div className="space-y-0.5">
                             {dayEvents.slice(0, 3).map(ev => {
                               const shop = ev.primary_shop ?? 'Orlando';
+                              const isHov = hoveredEvent === ev.id;
                               return (
-                                <button key={ev.id} onClick={() => router.push(`/events/${ev.id}`)}
+                                <div key={ev.id} className="relative group/pill"
                                   onMouseEnter={() => setHoveredEvent(ev.id)}
-                                  onMouseLeave={() => setHoveredEvent(null)}
-                                  className="w-full text-left transition-opacity"
-                                  style={{ opacity: hoveredEvent === ev.id ? 0.7 : 1 }}>
-                                  <div style={{
-                                    fontSize: '9px', fontFamily: 'var(--font-josefin)', fontWeight: 300,
-                                    color: SHOP_ACCENT[shop], background: SHOP_BG[shop],
-                                    padding: '1px 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                    letterSpacing: '0.03em',
-                                  }}>
-                                    {ev.name}
-                                  </div>
-                                </button>
+                                  onMouseLeave={() => setHoveredEvent(null)}>
+                                  <button onClick={() => router.push(`/events/${ev.id}`)}
+                                    className="w-full text-left transition-opacity"
+                                    style={{ opacity: isHov ? 0.75 : 1 }}>
+                                    <div style={{
+                                      fontSize: '9px', fontFamily: 'var(--font-josefin)', fontWeight: 300,
+                                      color: SHOP_ACCENT[shop], background: SHOP_BG[shop],
+                                      padding: '1px 16px 1px 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                      letterSpacing: '0.03em',
+                                    }}>
+                                      {ev.name}
+                                    </div>
+                                  </button>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setDeletingEvent(ev); }}
+                                    className="absolute right-0 top-0 bottom-0 w-4 flex items-center justify-center opacity-0 group-hover/pill:opacity-100 transition-opacity"
+                                    style={{ color: 'rgba(255,100,100,0.7)' }}
+                                  >
+                                    <X size={8} strokeWidth={2} />
+                                  </button>
+                                </div>
                               );
                             })}
                             {dayEvents.length > 3 && (
@@ -224,10 +291,10 @@ export default function CalendarPage() {
             <motion.div key="agenda" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               className="px-5 py-6 max-w-2xl space-y-8">
               {futureAgenda.length > 0 && (
-                <AgendaSection title="Upcoming" events={futureAgenda} />
+                <AgendaSection title="Upcoming" events={futureAgenda} onArchive={setDeletingEvent} />
               )}
               {pastAgenda.length > 0 && (
-                <AgendaSection title="Past" events={pastAgenda} dim />
+                <AgendaSection title="Past" events={pastAgenda} dim onArchive={setDeletingEvent} />
               )}
               {agenda.length === 0 && (
                 <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '12px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '24px' }}>
@@ -238,11 +305,22 @@ export default function CalendarPage() {
           )}
         </AnimatePresence>
       )}
+
+      <AnimatePresence>
+        {deletingEvent && (
+          <ArchiveConfirm
+            event={deletingEvent}
+            onConfirm={handleArchiveConfirm}
+            onCancel={() => setDeletingEvent(null)}
+            isDeleting={isDeleting}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function AgendaSection({ title, events, dim }: { title: string; events: Event[]; dim?: boolean }) {
+function AgendaSection({ title, events, dim, onArchive }: { title: string; events: Event[]; dim?: boolean; onArchive: (e: Event) => void }) {
   return (
     <div>
       <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
@@ -258,38 +336,47 @@ function AgendaSection({ title, events, dim }: { title: string; events: Event[];
           const dateLabel = start ? start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
 
           return (
-            <Link key={event.id} href={`/events/${event.id}`} className="block group">
-              <div className="flex items-center gap-4 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: dim ? 0.5 : 1 }}>
-                <div className="w-px self-stretch flex-shrink-0" style={{ background: accent, minHeight: '24px' }} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span style={{ fontSize: '14px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
-                      {event.name}
-                    </span>
-                    <span style={{ fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: accent, fontFamily: 'var(--font-josefin)' }}>
-                      {shop}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 flex-wrap">
-                    <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
-                      {dateLabel}{days > 1 ? ` · ${days} days` : ''}
-                    </span>
-                    {event.location && (
-                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
-                        {event.location}
+            <div key={event.id} className="group relative flex items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: dim ? 0.5 : 1 }}>
+              <Link href={`/events/${event.id}`} className="flex-1 min-w-0">
+                <div className="flex items-center gap-4 py-4">
+                  <div className="w-px self-stretch flex-shrink-0" style={{ background: accent, minHeight: '24px' }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span style={{ fontSize: '14px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
+                        {event.name}
                       </span>
-                    )}
-                    {event.load_by_date && (
-                      <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
-                        Load {new Date(event.load_by_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <span style={{ fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: accent, fontFamily: 'var(--font-josefin)' }}>
+                        {shop}
                       </span>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 flex-wrap">
+                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
+                        {dateLabel}{days > 1 ? ` · ${days} days` : ''}
+                      </span>
+                      {event.location && (
+                        <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                          {event.location}
+                        </span>
+                      )}
+                      {event.load_by_date && (
+                        <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+                          Load {new Date(event.load_by_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  <ChevronRight size={12} strokeWidth={1} style={{ color: 'rgba(255,255,255,0.15)', flexShrink: 0 }}
+                    className="transition-transform group-hover:translate-x-0.5 duration-150" />
                 </div>
-                <ChevronRight size={12} strokeWidth={1} style={{ color: 'rgba(255,255,255,0.15)', flexShrink: 0 }}
-                  className="transition-transform group-hover:translate-x-0.5 duration-150" />
-              </div>
-            </Link>
+              </Link>
+              <button
+                onClick={() => onArchive(event)}
+                className="ml-2 flex-shrink-0 w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:opacity-60"
+                style={{ color: 'rgba(255,100,100,0.6)' }}
+              >
+                <X size={12} strokeWidth={1.5} />
+              </button>
+            </div>
           );
         })}
       </div>
