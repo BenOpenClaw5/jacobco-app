@@ -56,6 +56,20 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   .safe-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
 }
 
+/* War room urgency pulse */
+@keyframes pulse-urgent {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.pulse-urgent { animation: pulse-urgent 1.8s ease-in-out infinite; }
+
+/* Team page breathe — controlled by JS, this is just the class hook */
+@keyframes breathe-glow {
+  0%, 100% { opacity: 0.10; }
+  50% { opacity: 0.18; }
+}
+.breathe-glow { animation: breathe-glow 4s ease-in-out infinite; }
+
 /* Ghost button style */
 .btn-ghost {
   border: 1px solid rgba(255,255,255,0.5);

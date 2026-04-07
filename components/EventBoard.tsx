@@ -42,6 +42,9 @@ function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCar
       caseShop: ic.shop,
       standardLightCount: ic.standard_light_count,
       actualLightCount: ic.actual_light_count,
+      checklist_state: ec?.checklist_state,
+      checklist_packed: ec?.checklist_packed,
+      has_tools_warning: ec?.has_tools_warning,
     });
   }
   for (const ec of eventCards.filter(e => e.is_custom)) {

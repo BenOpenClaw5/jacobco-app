@@ -14,6 +14,7 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
   const color = getCaseColor(card.type, card.customColor);
   const hasNotes = !!(card.notes && card.notes.trim());
   const hasImages = !!(card.images && card.images.length > 0);
+  const hasToolsWarning = card.type === 'Tools' && card.has_tools_warning;
 
   return (
     <motion.button
@@ -37,6 +38,22 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
         className="absolute left-0 top-0 bottom-0 w-px"
         style={{ background: color.accent, opacity: 0.7 }}
       />
+
+      {/* Amber tools warning dot */}
+      {hasToolsWarning && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '6px',
+            right: '6px',
+            width: '5px',
+            height: '5px',
+            borderRadius: '50%',
+            background: 'rgba(220,150,50,0.9)',
+            flexShrink: 0,
+          }}
+        />
+      )}
 
       <div className={`pl-3.5 pr-3 ${compact ? 'py-2' : 'py-2.5'}`}>
         <div

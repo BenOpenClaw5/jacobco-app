@@ -44,6 +44,9 @@ export interface EventCard {
   notes?: string;
   approved_by?: string;
   prepped_by?: string;
+  checklist_state?: Record<string, boolean>;
+  checklist_packed?: boolean;
+  has_tools_warning?: boolean;
   last_updated_by?: string;
   last_updated_at?: string;
   created_at: string;
@@ -80,9 +83,33 @@ export interface DisplayCard {
   // Light counts
   standardLightCount?: number;
   actualLightCount?: number;
+  // Tools checklist
+  checklist_state?: Record<string, boolean>;
+  checklist_packed?: boolean;
+  has_tools_warning?: boolean;
   // Last updated
   last_updated_by?: string;
   last_updated_at?: string;
+}
+
+export interface Booking {
+  id: string;
+  status: 'inquiry' | 'quoted' | 'confirmed' | 'cancelled';
+  client_name: string;
+  client_contact?: string;
+  event_name: string;
+  event_start_date?: string;
+  event_end_date?: string;
+  venue?: string;
+  event_type?: string;
+  budget?: number;
+  notes?: string;
+  primary_shop: Shop;
+  equipment_selection?: Record<string, { lightCount: number; cases: string[]; pricePerLight: number }>;
+  total_price?: number;
+  event_id?: string;
+  created_at: string;
+  last_updated_at: string;
 }
 
 export interface ReturnIncident {

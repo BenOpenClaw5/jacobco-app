@@ -1,8 +1,8 @@
 'use client';
 
 import { use, useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, Loader2, ExternalLink, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
@@ -24,6 +24,7 @@ interface Submission {
   general_notes: string | null;
   status: string;
   admin_notes: string | null;
+  review_note: string | null;
   submitted_at: string;
 }
 
@@ -36,10 +37,117 @@ interface Reimbursement {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'submitted', label: 'Submitted', color: 'rgba(120,180,220,0.7)' },
-  { value: 'reviewed', label: 'Reviewed', color: 'rgba(120,200,140,0.7)' },
-  { value: 'needs_followup', label: 'Needs Follow-up', color: 'rgba(220,160,80,0.7)' },
+  { value: 'submitted',     label: 'Submitted',      color: 'rgba(120,180,220,0.7)' },
+  { value: 'reviewed',      label: 'Reviewed',        color: 'rgba(120,200,140,0.7)' },
+  { value: 'needs_followup',label: 'Needs Follow-up', color: 'rgba(220,160,80,0.7)'  },
 ];
+
+// ─── Review Note Modal ────────────────────────────────────────────────────────
+
+function ReviewNoteModal({ onSave, onSkip }: { onSave: (note: string) => void; onSkip: () => void }) {
+  const [note, setNote] = useState('');
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
+      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onSkip} />
+      <motion.div
+        className="relative w-full max-w-sm p-8"
+        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+      >
+        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+          Mark as Reviewed
+        </div>
+        <h3 style={{ fontSize: '18px', fontWeight: 300, letterSpacing: '0.06em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+          Leave a note?
+        </h3>
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          rows={3}
+          placeholder="Approved by Heather..."
+          autoFocus
+          style={{
+            width: '100%',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: '1px solid rgba(255,255,255,0.12)',
+            color: '#ffffff',
+            fontFamily: 'var(--font-urbanist)',
+            fontWeight: 200,
+            fontSize: '13px',
+            padding: '0 0 8px 0',
+            outline: 'none',
+            resize: 'none',
+            marginBottom: '24px',
+          }}
+          className="placeholder:opacity-20"
+        />
+        <div className="flex gap-3">
+          <button
+            onClick={onSkip}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+          >
+            Skip
+          </button>
+          <button
+            onClick={() => onSave(note.trim())}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-70"
+            style={{ border: '1px solid rgba(120,200,140,0.4)', color: 'rgba(120,200,140,0.9)', fontFamily: 'var(--font-josefin)' }}
+          >
+            Save Note
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ─── Delete confirm ────────────────────────────────────────────────────────────
+
+function DeleteConfirm({ onConfirm, onCancel, isDeleting }: {
+  onConfirm: () => void; onCancel: () => void; isDeleting: boolean;
+}) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
+      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
+      <motion.div
+        className="relative w-full max-w-xs p-8"
+        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+      >
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          Delete Permanently?
+        </h3>
+        <p className="text-xs font-light mb-5" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+          This cannot be undone. The submission and all reimbursement records will be deleted.
+        </p>
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={isDeleting}
+            className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,100,100,0.3)', color: 'rgba(255,110,110,0.8)', fontFamily: 'var(--font-josefin)' }}>
+            {isDeleting && <Loader2 size={10} className="animate-spin" />}
+            {isDeleting ? 'Deleting' : 'Delete'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -54,6 +162,9 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
   const [adminNotes, setAdminNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [showReviewNote, setShowReviewNote] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const ok = sessionStorage.getItem('payroll_admin') === '1';
@@ -80,12 +191,41 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
   async function handleStatusChange(newStatus: string) {
     if (!submission) return;
+    // Toggle: clicking the current status resets to 'submitted'
+    const finalStatus = submission.status === newStatus ? 'submitted' : newStatus;
+
+    // If marking as reviewed, show note popup first
+    if (finalStatus === 'reviewed') {
+      setShowReviewNote(true);
+      return;
+    }
+
     setSavingStatus(true);
     try {
-      await supabase.from('payroll_submissions').update({ status: newStatus }).eq('id', id);
-      setSubmission(prev => prev ? { ...prev, status: newStatus } : prev);
+      await supabase.from('payroll_submissions').update({ status: finalStatus }).eq('id', id);
+      setSubmission(prev => prev ? { ...prev, status: finalStatus } : prev);
     } catch (err) { console.error(err); }
     finally { setSavingStatus(false); }
+  }
+
+  async function handleReviewWithNote(note: string) {
+    setShowReviewNote(false);
+    setSavingStatus(true);
+    try {
+      const updates: Record<string, string> = { status: 'reviewed' };
+      if (note) updates.review_note = note;
+      await supabase.from('payroll_submissions').update(updates).eq('id', id);
+      setSubmission(prev => prev ? { ...prev, status: 'reviewed', review_note: note || prev.review_note } : prev);
+    } catch (err) { console.error(err); }
+    finally { setSavingStatus(false); }
+  }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      await supabase.from('payroll_submissions').delete().eq('id', id);
+      router.replace('/admin/payroll');
+    } catch (err) { console.error(err); setIsDeleting(false); }
   }
 
   async function saveAdminNotes() {
@@ -99,12 +239,10 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
   function formatDate(s: string) {
     return new Date(s).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
-
   function formatPeriod(start: string, end: string) {
     const opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
     return `${new Date(start + 'T00:00:00').toLocaleDateString('en-US', opts)} – ${new Date(end + 'T00:00:00').toLocaleDateString('en-US', opts)}`;
   }
-
   function shopHoursLabel(sub: Submission) {
     if (sub.shop_hours_type === 'none') return 'No shop hours';
     if (sub.shop_hours_type === 'manual') return `Manual — ${sub.shop_hours_manual ?? '?'} hrs`;
@@ -118,22 +256,13 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
       </div>
     );
   }
-
   if (!authed) return null;
-
-  const currentStatus = STATUS_OPTIONS.find(s => s.value === submission?.status) ?? STATUS_OPTIONS[0];
 
   return (
     <div className="min-h-screen" style={{ background: '#070c0e' }}>
       {/* Header */}
-      <header
-        className="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
-        style={{
-          background: 'rgba(7,12,14,0.96)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          backdropFilter: 'blur(16px)',
-        }}
-      >
+      <header className="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
+        style={{ background: 'rgba(7,12,14,0.96)', borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)' }}>
         <div className="flex items-center gap-4">
           <Link href="/admin/payroll" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
             <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)' }} />
@@ -141,9 +270,18 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
           <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
           <Logo size="sm" asLink={false} />
         </div>
-        <span style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
-          Payroll Admin
-        </span>
+        <div className="flex items-center gap-3">
+          <span style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+            Payroll Admin
+          </span>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center justify-center w-7 h-7 transition-opacity hover:opacity-60"
+            style={{ color: 'rgba(255,100,100,0.45)', border: '1px solid rgba(255,100,100,0.15)' }}
+          >
+            <Trash2 size={11} strokeWidth={1.5} />
+          </button>
+        </div>
       </header>
 
       {submission && (
@@ -169,27 +307,35 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Status */}
             <section>
-              <div style={LABEL}>Status</div>
+              <div style={LABEL}>Status <span style={{ opacity: 0.4, fontWeight: 200, fontSize: '9px' }}>(click current to unmark)</span></div>
               <div className="flex gap-2 flex-wrap">
-                {STATUS_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => handleStatusChange(opt.value)}
-                    disabled={savingStatus}
-                    className="px-3 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light transition-all"
-                    style={{
-                      fontFamily: 'var(--font-josefin)',
-                      border: `1px solid ${opt.color}${submission.status === opt.value ? '' : '40'}`,
-                      color: submission.status === opt.value ? opt.color : 'rgba(255,255,255,0.2)',
-                      background: submission.status === opt.value ? `${opt.color}12` : 'transparent',
-                    }}
-                  >
-                    {opt.label}
-                    {savingStatus && submission.status !== opt.value && ''}
-                  </button>
-                ))}
+                {STATUS_OPTIONS.map(opt => {
+                  const isActive = submission.status === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => handleStatusChange(opt.value)}
+                      disabled={savingStatus}
+                      className="px-3 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light transition-all"
+                      style={{
+                        fontFamily: 'var(--font-josefin)',
+                        border: `1px solid ${opt.color}${isActive ? '' : '40'}`,
+                        color: isActive ? opt.color : 'rgba(255,255,255,0.2)',
+                        background: isActive ? `${opt.color}12` : 'transparent',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
                 {savingStatus && <Loader2 size={12} className="animate-spin self-center" style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
+              {/* Review note display */}
+              {submission.review_note && submission.status === 'reviewed' && (
+                <p style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)', marginTop: '10px', fontWeight: 200 }}>
+                  &ldquo;{submission.review_note}&rdquo;
+                </p>
+              )}
             </section>
 
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />
@@ -225,10 +371,7 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="space-y-3 mt-1">
                   {reimbursements.map((r, i) => (
-                    <div
-                      key={r.id}
-                      style={{ border: '1px solid rgba(255,255,255,0.07)', padding: '14px 16px', background: 'rgba(255,255,255,0.02)' }}
-                    >
+                    <div key={r.id} style={{ border: '1px solid rgba(255,255,255,0.07)', padding: '14px 16px', background: 'rgba(255,255,255,0.02)' }}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div style={{ fontSize: '16px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
@@ -243,15 +386,10 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                             Item {i + 1}
                           </div>
                         </div>
-                        <a
-                          href={r.receipt_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <a href={r.receipt_url} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-1.5 flex-shrink-0 transition-opacity hover:opacity-60"
-                          style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(120,180,220,0.8)', fontFamily: 'var(--font-josefin)' }}
-                        >
-                          Receipt
-                          <ExternalLink size={10} strokeWidth={1.5} />
+                          style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(120,180,220,0.8)', fontFamily: 'var(--font-josefin)' }}>
+                          Receipt <ExternalLink size={10} strokeWidth={1.5} />
                         </a>
                       </div>
                     </div>
@@ -282,16 +420,7 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                 rows={4}
                 placeholder="Add internal notes, follow-up actions, etc."
                 className="w-full resize-none outline-none placeholder:opacity-20"
-                style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#ffffff',
-                  fontFamily: 'var(--font-urbanist)',
-                  fontWeight: 200,
-                  fontSize: '13px',
-                  padding: '12px 14px',
-                  lineHeight: 1.7,
-                }}
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '13px', padding: '12px 14px', lineHeight: 1.7 }}
               />
               <div className="flex items-center justify-between mt-2">
                 <button
@@ -310,6 +439,22 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {showReviewNote && (
+          <ReviewNoteModal
+            onSave={handleReviewWithNote}
+            onSkip={() => handleReviewWithNote('')}
+          />
+        )}
+        {showDeleteConfirm && (
+          <DeleteConfirm
+            onConfirm={handleDelete}
+            onCancel={() => setShowDeleteConfirm(false)}
+            isDeleting={isDeleting}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

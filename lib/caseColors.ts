@@ -113,6 +113,27 @@ export const CASE_TYPE_COLORS: Record<string, CaseColorDef> = {
     border: 'rgba(91, 184, 91, 0.18)',
     text: '#7ADD7A',
   },
+  'Circle Brackets': {
+    accent: '#8B8BB8',
+    bg: 'rgba(40, 40, 80, 0.25)',
+    glow: 'rgba(139, 139, 184, 0.08)',
+    border: 'rgba(139, 139, 184, 0.18)',
+    text: '#AAAADD',
+  },
+  'Clamp Brackets Tree': {
+    accent: '#5BB85B',
+    bg: 'rgba(20, 70, 20, 0.25)',
+    glow: 'rgba(91, 184, 91, 0.08)',
+    border: 'rgba(91, 184, 91, 0.18)',
+    text: '#7ADD7A',
+  },
+  'Tools': {
+    accent: '#C8A870',
+    bg: 'rgba(80, 60, 20, 0.25)',
+    glow: 'rgba(200, 168, 112, 0.08)',
+    border: 'rgba(200, 168, 112, 0.22)',
+    text: '#D4B880',
+  },
 };
 
 export const DEFAULT_CASE_COLOR: CaseColorDef = {

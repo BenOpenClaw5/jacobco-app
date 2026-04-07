@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2, ChevronRight, Loader2, ZoomIn } from 'lucide-react';
+import { X, Plus, Trash2, ChevronRight, Loader2, ZoomIn, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import { DisplayCard, Stage, STAGES, STAGE_META } from '@/lib/types';
 import { getCaseColor, STAGE_COLORS } from '@/lib/caseColors';
 import { supabase } from '@/lib/supabase';
+import { TOOLS_CHECKLIST, ALL_CHECKLIST_ITEMS, TOTAL_ITEMS } from '@/lib/toolsChecklist';
 
 interface CardDetailSheetProps {
   card: DisplayCard | null;
@@ -28,6 +29,14 @@ export default function CardDetailSheet({
   const [isMoving, setIsMoving] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  // Tools checklist
+  const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
+  const [checklistPacked, setChecklistPacked] = useState(false);
+  const [isSavingChecklist, setIsSavingChecklist] = useState(false);
+  const [isPackingAll, setIsPackingAll] = useState(false);
+  // Warning when moving tools card with incomplete checklist
+  const [pendingMove, setPendingMove] = useState<Stage | null | undefined>(undefined);
+  const checklistSaveRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,6 +45,9 @@ export default function CardDetailSheet({
       setApprovedBy(card.approved_by ?? '');
       setPreppedBy(card.prepped_by ?? '');
       setImages(card.images ?? []);
+      setChecklistState(card.checklist_state ?? {});
+      setChecklistPacked(card.checklist_packed ?? false);
+      setPendingMove(undefined);
     }
   }, [card]);
 
@@ -70,14 +82,66 @@ export default function CardDetailSheet({
 
   async function handleMove(newStage: Stage | null) {
     if (!card || isMoving) return;
+    // Tools card: warn if moving to prepped/loaded without completing checklist
+    if (
+      card.type === 'Tools' &&
+      (newStage === 'prepped' || newStage === 'loaded') &&
+      !checklistPacked
+    ) {
+      setPendingMove(newStage);
+      return;
+    }
+    await executeMove(newStage, false);
+  }
+
+  async function executeMove(newStage: Stage | null, withWarning: boolean) {
+    if (!card || isMoving) return;
     setIsMoving(true);
+    setPendingMove(undefined);
     try {
       const ecId = await ensureEventCard();
-      await supabase.from('event_cards').update({ stage: newStage ?? null, notes, approved_by: approvedBy, prepped_by: preppedBy }).eq('id', ecId);
-      onCardMoved({ ...card, eventCardId: ecId }, newStage);
+      const updates: Record<string, unknown> = {
+        stage: newStage ?? null,
+        notes,
+        approved_by: approvedBy,
+        prepped_by: preppedBy,
+      };
+      if (withWarning) updates.has_tools_warning = true;
+      await supabase.from('event_cards').update(updates).eq('id', ecId);
+      onCardMoved({ ...card, eventCardId: ecId, has_tools_warning: withWarning || card.has_tools_warning }, newStage);
       onClose();
     } catch (err) { console.error(err); }
     finally { setIsMoving(false); }
+  }
+
+  const saveChecklistState = useCallback(async (state: Record<string, boolean>) => {
+    if (!card) return;
+    try {
+      const ecId = await ensureEventCard();
+      await supabase.from('event_cards').update({ checklist_state: state }).eq('id', ecId);
+    } catch (err) { console.error(err); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card]);
+
+  function toggleChecklistItem(itemId: string) {
+    const next = { ...checklistState, [itemId]: !checklistState[itemId] };
+    setChecklistState(next);
+    // Debounce save
+    if (checklistSaveRef.current) clearTimeout(checklistSaveRef.current);
+    checklistSaveRef.current = setTimeout(() => saveChecklistState(next), 800);
+  }
+
+  async function handlePackAll() {
+    const allChecked = ALL_CHECKLIST_ITEMS.every(item => checklistState[item.id]);
+    if (!allChecked) return;
+    setIsPackingAll(true);
+    try {
+      const ecId = await ensureEventCard();
+      await supabase.from('event_cards').update({ checklist_packed: true, has_tools_warning: false }).eq('id', ecId);
+      setChecklistPacked(true);
+      onCardUpdated({ eventCardId: ecId, displayId: card!.displayId, checklist_packed: true, has_tools_warning: false });
+    } catch (err) { console.error(err); }
+    finally { setIsPackingAll(false); }
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -296,19 +360,64 @@ export default function CardDetailSheet({
                   <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </div>
 
+                {/* Tools Checklist */}
+                {card.type === 'Tools' && (
+                  <ToolsChecklist
+                    checklistState={checklistState}
+                    checklistPacked={checklistPacked}
+                    onToggle={toggleChecklistItem}
+                    onPackAll={handlePackAll}
+                    isPackingAll={isPackingAll}
+                  />
+                )}
+
                 {/* Move to */}
                 <div>
                   <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-4" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
                     Move to
                   </label>
+
+                  {/* Tools warning inline */}
+                  {pendingMove !== undefined && (
+                    <div style={{ background: 'rgba(220,140,30,0.08)', border: '1px solid rgba(220,140,30,0.2)', padding: '16px', marginBottom: '12px' }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle size={12} style={{ color: 'rgba(220,160,60,0.9)', flexShrink: 0 }} />
+                        <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}>
+                          Checklist Incomplete
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-urbanist)', marginBottom: '14px' }}>
+                        Tools checklist is not fully packed. Move anyway?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setPendingMove(undefined)}
+                          className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-60"
+                          style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+                        >
+                          Go Back
+                        </button>
+                        <button
+                          onClick={() => executeMove(pendingMove, true)}
+                          disabled={isMoving}
+                          className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-70"
+                          style={{ border: '1px solid rgba(220,140,30,0.4)', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}
+                        >
+                          {isMoving && <Loader2 size={9} className="animate-spin" />}
+                          Continue Anyway
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-1">
                     {moveTargets.map(target => (
                       <button
                         key={target.label}
                         onClick={() => handleMove(target.stage)}
-                        disabled={isMoving}
+                        disabled={isMoving || pendingMove !== undefined}
                         className="flex items-center justify-between w-full py-3 px-0 text-left transition-opacity hover:opacity-60"
-                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: pendingMove !== undefined ? 0.3 : 1 }}
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-3 h-px" style={{ background: target.accent }} />
@@ -369,5 +478,144 @@ export default function CardDetailSheet({
       )}
     </AnimatePresence>
     </>
+  );
+}
+
+// ─── Tools Checklist sub-component ───────────────────────────────────────────
+
+interface ToolsChecklistProps {
+  checklistState: Record<string, boolean>;
+  checklistPacked: boolean;
+  onToggle: (id: string) => void;
+  onPackAll: () => void;
+  isPackingAll: boolean;
+}
+
+function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, isPackingAll }: ToolsChecklistProps) {
+  const checkedCount = ALL_CHECKLIST_ITEMS.filter(item => checklistState[item.id]).length;
+  const allChecked = checkedCount === TOTAL_ITEMS;
+
+  const drawerStyle: React.CSSProperties = {
+    fontSize: '8px',
+    letterSpacing: '0.32em',
+    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.2)',
+    fontFamily: 'var(--font-josefin)',
+    marginBottom: '8px',
+    marginTop: '16px',
+  };
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <label style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+          Tools Checklist
+        </label>
+        <span style={{ fontSize: '9px', letterSpacing: '0.1em', color: allChecked ? 'rgba(120,200,140,0.8)' : 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+          {checkedCount} / {TOTAL_ITEMS} packed
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height: '2px', background: 'rgba(255,255,255,0.07)', borderRadius: '1px', marginBottom: '16px' }}>
+        <div style={{ height: '100%', width: `${(checkedCount / TOTAL_ITEMS) * 100}%`, background: allChecked ? 'rgba(120,200,140,0.8)' : 'rgba(255,185,100,0.7)', borderRadius: '1px', transition: 'width 0.2s' }} />
+      </div>
+
+      {/* Packed banner */}
+      {checklistPacked && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(120,200,140,0.08)', border: '1px solid rgba(120,200,140,0.2)', padding: '10px 12px', marginBottom: '12px' }}>
+          <CheckSquare size={12} style={{ color: 'rgba(120,200,140,0.8)' }} />
+          <span style={{ fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(120,200,140,0.8)', fontFamily: 'var(--font-josefin)' }}>
+            All Packed ✓
+          </span>
+        </div>
+      )}
+
+      {/* Drawers */}
+      {[
+        { label: 'Top Drawer', items: TOOLS_CHECKLIST.top },
+        { label: 'Middle Drawer', items: TOOLS_CHECKLIST.middle },
+        { label: 'Bottom Drawer', items: TOOLS_CHECKLIST.bottom },
+      ].map(({ label, items }) => (
+        <div key={label}>
+          <div style={drawerStyle}>{label}</div>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            {items.map(item => {
+              const checked = !!checklistState[item.id];
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onToggle(item.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '10px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    background: 'transparent',
+                    textAlign: 'left',
+                    transition: 'opacity 0.1s',
+                  }}
+                >
+                  {checked
+                    ? <CheckSquare size={13} style={{ color: 'rgba(120,200,140,0.7)', flexShrink: 0 }} />
+                    : <Square size={13} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                  }
+                  <span style={{
+                    fontSize: '12px',
+                    fontWeight: 200,
+                    color: checked ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.7)',
+                    fontFamily: 'var(--font-urbanist)',
+                    textDecoration: checked ? 'line-through' : 'none',
+                    transition: 'color 0.15s, text-decoration 0.15s',
+                  }}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* All Packed button */}
+      <button
+        onClick={onPackAll}
+        disabled={!allChecked || checklistPacked || isPackingAll}
+        style={{
+          width: '100%',
+          marginTop: '16px',
+          padding: '12px',
+          border: allChecked && !checklistPacked
+            ? '1px solid rgba(120,200,140,0.5)'
+            : '1px solid rgba(255,255,255,0.08)',
+          color: allChecked && !checklistPacked
+            ? 'rgba(120,200,140,0.9)'
+            : 'rgba(255,255,255,0.2)',
+          fontFamily: 'var(--font-josefin)',
+          fontSize: '10px',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          transition: 'all 0.2s',
+          cursor: allChecked && !checklistPacked ? 'pointer' : 'not-allowed',
+          background: allChecked && !checklistPacked ? 'rgba(120,200,140,0.06)' : 'transparent',
+        }}
+      >
+        {isPackingAll
+          ? <Loader2 size={11} className="animate-spin" />
+          : <CheckSquare size={11} />
+        }
+        {checklistPacked ? 'Packed' : 'All Packed ✓'}
+      </button>
+
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
+    </div>
   );
 }

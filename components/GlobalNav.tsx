@@ -8,16 +8,29 @@ import Logo from './Logo';
 import { usePalette } from '@/lib/commandPaletteContext';
 
 const NAV_LINKS = [
-  { href: '/events', label: 'Events' },
-  { href: '/calendar', label: 'Calendar' },
+  { href: '/events',    label: 'Events'    },
+  { href: '/calendar',  label: 'Calendar'  },
+  { href: '/war-room',  label: 'War Room'  },
+  { href: '/booking',   label: 'Booking'   },
   { href: '/inventory', label: 'Inventory' },
-  { href: '/lookup', label: 'Lookup' },
+  { href: '/schedule',  label: 'Schedule'  },
+  { href: '/team',      label: 'The Team'  },
+];
+
+const DRAWER_EXTRA = [
+  { href: '/lookup',        label: 'Lookup'   },
+  { href: '/payroll',       label: 'Payroll'  },
+  { href: '/incidents',     label: 'Incidents'},
 ];
 
 export default function GlobalNav() {
   const pathname = usePathname();
   const { openPalette } = usePalette();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(href + '/');
+  }
 
   return (
     <>
@@ -35,15 +48,15 @@ export default function GlobalNav() {
             <Logo size="sm" asLink={false} />
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Desktop nav — scrollable on intermediate sizes */}
+          <nav className="hidden md:flex items-center gap-0.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {NAV_LINKS.map(link => {
-              const active = pathname === link.href || pathname.startsWith(link.href + '/');
+              const active = isActive(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-1.5 text-[9px] tracking-[0.2em] uppercase font-light transition-all"
+                  className="px-2.5 py-1.5 text-[9px] tracking-[0.18em] uppercase font-light transition-all whitespace-nowrap"
                   style={{
                     fontFamily: 'var(--font-josefin)',
                     color: active ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.28)',
@@ -75,7 +88,6 @@ export default function GlobalNav() {
               <span style={{ color: 'rgba(255,255,255,0.15)' }}>⌘K</span>
             </button>
 
-            {/* Mobile search / command */}
             <button
               onClick={() => openPalette()}
               className="sm:hidden flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-60"
@@ -84,7 +96,6 @@ export default function GlobalNav() {
               <Search size={12} strokeWidth={1.5} />
             </button>
 
-            {/* Mobile menu */}
             <button
               onClick={() => setMobileOpen(v => !v)}
               className="md:hidden flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-60"
@@ -101,8 +112,8 @@ export default function GlobalNav() {
             className="md:hidden px-5 pb-4"
             style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
           >
-            {NAV_LINKS.map(link => {
-              const active = pathname === link.href || pathname.startsWith(link.href + '/');
+            {[...NAV_LINKS, ...DRAWER_EXTRA].map(link => {
+              const active = isActive(link.href);
               return (
                 <Link
                   key={link.href}
@@ -119,14 +130,6 @@ export default function GlobalNav() {
                 </Link>
               );
             })}
-            <Link
-              href="/payroll"
-              onClick={() => setMobileOpen(false)}
-              className="block py-3 text-[10px] tracking-[0.22em] uppercase font-light"
-              style={{ fontFamily: 'var(--font-josefin)', color: 'rgba(255,255,255,0.18)' }}
-            >
-              Payroll
-            </Link>
           </div>
         )}
       </header>
