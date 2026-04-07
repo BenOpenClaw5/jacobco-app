@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Event, Shop, SHOPS } from '@/lib/types';
+import TeamSelect from './TeamSelect';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -20,12 +21,13 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
   const [eventStartDate, setEventStartDate] = useState('');
   const [eventEndDate, setEventEndDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   function reset() {
     setName(''); setShop('Orlando'); setLocation(''); setLoadByDate('');
-    setEventStartDate(''); setEventEndDate(''); setNotes(''); setError('');
+    setEventStartDate(''); setEventEndDate(''); setNotes(''); setTeamMembers([]); setError('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -41,6 +43,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
         event_start_date: eventStartDate || null,
         event_end_date: eventEndDate || null,
         notes: notes.trim() || null,
+        team_members: teamMembers,
         last_updated_by: 'Guest User',
         last_updated_at: new Date().toISOString(),
       }).select().single();
@@ -175,6 +178,13 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Any notes..."
                     className="w-full resize-none outline-none placeholder:opacity-20 text-sm"
                     style={{ ...fieldStyle, borderBottom: '1px solid rgba(255,255,255,0.1)' }} />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    Team
+                  </label>
+                  <TeamSelect selected={teamMembers} onChange={setTeamMembers} />
                 </div>
 
                 {error && <p className="text-xs" style={{ color: '#ff6b6b' }}>{error}</p>}

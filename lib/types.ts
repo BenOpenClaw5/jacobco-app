@@ -27,6 +27,7 @@ export interface Event {
   primary_shop?: Shop;
   google_doc_url?: string;
   archived_at?: string;
+  team_members?: string[];
   last_updated_by?: string;
   last_updated_at?: string;
   created_at: string;

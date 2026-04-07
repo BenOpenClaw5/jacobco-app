@@ -85,91 +85,156 @@ function lensWorld(
 }
 
 // ─── Pinspot illustration ─────────────────────────────────────────────────────
-// Narrow cylindrical theatrical spot — barrel, ribs, mount clamp, single lens.
-// Local +Y = output direction (lens end). Drawn at (x,y) rotated by angle.
+// Silver/aluminum theatrical pinspot: cubic base → skinny neck → round head.
+// Drawn horizontal at origin — head (output/lens) at +X, base at −X.
+// Caller rotates so +X aims toward canvas center.
 
 function drawPinspot(
   ctx: CanvasRenderingContext2D,
   x: number, y: number,
   angle: number,
-  s: number,          // scale (1.0 desktop, 0.65 mobile)
+  s: number,
   intensity: number,
 ) {
   if (intensity < 0.005) return;
 
-  const W       = 10 * s;
-  const H       = 28 * s;
-  const lensOff = H / 2 + 4 * s;
+  const totalLen = 42 * s;
+  const baseW    = 14 * s;
+  const baseH    = 11 * s;
+  const neckW    = 10 * s;
+  const neckH    =  4 * s;
+  const headR    =  8 * s;
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, intensity);
   ctx.translate(x, y);
   ctx.rotate(angle);
 
-  // ── Mount clamp at pipe end (local −Y = "top") ──
-  ctx.fillStyle = '#222';
-  rRect(ctx, -W / 2 - 3 * s, -H / 2 - 8 * s, W + 6 * s, 8 * s, 2 * s);
+  const baseX = -totalLen / 2;
+  const baseY = -baseH / 2;
+
+  // Drop shadow on main body shapes
+  ctx.shadowColor   = 'rgba(0,0,0,0.4)';
+  ctx.shadowBlur    = 6;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 2;
+
+  // ── Part 1: Base (cubic rectangular box) ──
+  const baseGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + baseH);
+  baseGrad.addColorStop(0.0, '#d8d8d8');
+  baseGrad.addColorStop(0.3, '#b8b8b8');
+  baseGrad.addColorStop(0.7, '#989898');
+  baseGrad.addColorStop(1.0, '#787878');
+  ctx.fillStyle = baseGrad;
+  rRect(ctx, baseX, baseY, baseW, baseH, 2 * s);
   ctx.fill();
-  ctx.strokeStyle = '#3a3a3a';
-  ctx.lineWidth = 0.5;
+
+  // ── Part 2: Neck (skinny connector) ──
+  const neckX = baseX + baseW;
+  const neckY = -neckH / 2;
+  const neckGrad = ctx.createLinearGradient(neckX, neckY, neckX, neckY + neckH);
+  neckGrad.addColorStop(0.0, '#c8c8c8');
+  neckGrad.addColorStop(0.5, '#a0a0a0');
+  neckGrad.addColorStop(1.0, '#808080');
+  ctx.fillStyle = neckGrad;
+  rRect(ctx, neckX, neckY, neckW, neckH, s);
+  ctx.fill();
+
+  // ── Part 3: Head (round cylinder, silver/aluminum) ──
+  const headCX = neckX + neckW + headR * 0.6;
+  const headCY = 0;
+  const headGrad = ctx.createRadialGradient(
+    headCX - headR * 0.3, headCY - headR * 0.3, 0,
+    headCX, headCY, headR,
+  );
+  headGrad.addColorStop(0.0, '#e0e0e0');
+  headGrad.addColorStop(0.5, '#b0b0b0');
+  headGrad.addColorStop(1.0, '#707070');
+  ctx.fillStyle = headGrad;
+  ctx.beginPath();
+  ctx.arc(headCX, headCY, headR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Clear shadow before thin detail lines
+  ctx.shadowColor   = 'transparent';
+  ctx.shadowBlur    = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  // Base: top-edge specular highlight
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 0.75;
+  ctx.beginPath();
+  ctx.moveTo(baseX + 2 * s, baseY + s);
+  ctx.lineTo(baseX + baseW - 2 * s, baseY + s);
   ctx.stroke();
-  // Bolt head on clamp
+
+  // Base: subtle center panel seam
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(baseX + baseW * 0.5, baseY + 2 * s);
+  ctx.lineTo(baseX + baseW * 0.5, baseY + baseH - 2 * s);
+  ctx.stroke();
+
+  // Base: dark rim stroke
+  ctx.strokeStyle = 'rgba(80,80,80,0.6)';
+  ctx.lineWidth = 0.75;
+  rRect(ctx, baseX, baseY, baseW, baseH, 2 * s);
+  ctx.stroke();
+
+  // Neck: top specular line
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(neckX + s, neckY + s);
+  ctx.lineTo(neckX + neckW - s, neckY + s);
+  ctx.stroke();
+
+  // Head: housing rim stroke
+  ctx.strokeStyle = 'rgba(60,60,60,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(headCX, headCY, headR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Head: specular arc (upper-left)
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(headCX, headCY, headR - 1.5 * s, Math.PI * 1.1, Math.PI * 1.7);
+  ctx.stroke();
+
+  // ── Flat face on the output end (+X side of head) ──
+  const faceX = headCX + headR * 0.15;
+
+  // Bezel ring (dark outer ring)
+  ctx.fillStyle = '#555';
+  ctx.beginPath();
+  ctx.arc(faceX, headCY, headR * 0.72, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner bezel
   ctx.fillStyle = '#333';
   ctx.beginPath();
-  ctx.arc(W / 2 + s, -H / 2 - 4 * s, 2 * s, 0, Math.PI * 2);
+  ctx.arc(faceX, headCY, headR * 0.58, 0, Math.PI * 2);
   ctx.fill();
 
-  // ── Barrel body ──
-  const bodyGrad = ctx.createLinearGradient(-W / 2, 0, W / 2, 0);
-  bodyGrad.addColorStop(0.00, '#1a1a1a');
-  bodyGrad.addColorStop(0.30, '#2e2e2e');
-  bodyGrad.addColorStop(0.70, '#252525');
-  bodyGrad.addColorStop(1.00, '#111');
-  ctx.fillStyle = bodyGrad;
-  rRect(ctx, -W / 2, -H / 2, W, H, 2 * s);
-  ctx.fill();
-
-  // Heat-dissipation ribs
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 0.5;
-  for (let i = -1; i <= 1; i++) {
-    ctx.beginPath();
-    ctx.moveTo(-W / 2 + s, i * (H / 4));
-    ctx.lineTo( W / 2 - s, i * (H / 4));
-    ctx.stroke();
-  }
-
-  // Specular highlight — left edge roundness illusion
-  ctx.strokeStyle = 'rgba(255,255,255,0.13)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(-W / 2 + s, -H / 2 + 3 * s);
-  ctx.lineTo(-W / 2 + s,  H / 2 - 3 * s);
-  ctx.stroke();
-
-  // ── Lens housing (output end, local +Y) ──
-  ctx.fillStyle = '#111';
-  ctx.beginPath();
-  ctx.arc(0, lensOff, 7 * s, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#383838';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // Reflector cup
-  ctx.fillStyle = '#252525';
-  ctx.beginPath();
-  ctx.arc(0, lensOff, 5 * s, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Lens aperture glow — bright center, warm amber halo
-  const lg = ctx.createRadialGradient(0, lensOff, 0, 0, lensOff, 4.5 * s);
-  lg.addColorStop(0.00, 'rgba(255,245,200,0.95)');
-  lg.addColorStop(0.35, 'rgba(255,225,130,0.55)');
-  lg.addColorStop(1.00, 'rgba(255,180,60,0)');
+  // Lens aperture — warm amber-white glow
+  const lg = ctx.createRadialGradient(faceX, headCY, 0, faceX, headCY, headR * 0.48);
+  lg.addColorStop(0.00, 'rgba(255,248,220,1.0)');
+  lg.addColorStop(0.35, 'rgba(255,225,150,0.9)');
+  lg.addColorStop(0.70, 'rgba(255,190,80,0.6)');
+  lg.addColorStop(1.00, 'rgba(255,160,40,0)');
   ctx.fillStyle = lg;
   ctx.beginPath();
-  ctx.arc(0, lensOff, 4.5 * s, 0, Math.PI * 2);
+  ctx.arc(faceX, headCY, headR * 0.48, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Lens center flare dot
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath();
+  ctx.arc(faceX, headCY, headR * 0.12, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
@@ -460,16 +525,26 @@ export default function LightingRig() {
         }
         intensities.push(intensity);
 
-        // Rotation angle — local +Y aims at center
-        const angle = aimAngle(fxX, fxY, centerX, centerY);
+        // Rotation angle and lens world position — differ per fixture type
+        let angle: number;
+        if (fx.type === 'pinspot') {
+          // Drawn horizontal: head at +X, so rotate so +X aims at center
+          angle = Math.atan2(centerY - fxY, centerX - fxX);
+          // Lens face is at local X = headCX + headR*0.15
+          const tL = 42 * scale, bW = 14 * scale, nW = 10 * scale, hR = 8 * scale;
+          const hCX = -tL / 2 + bW + nW + hR * 0.6;
+          const lensLocalX = hCX + hR * 0.15;
+          lensPos.push({
+            lx: fxX + Math.cos(angle) * lensLocalX,
+            ly: fxY + Math.sin(angle) * lensLocalX,
+          });
+        } else {
+          // AX5 drawn vertical: face at +Y, so rotate so +Y aims at center
+          angle = aimAngle(fxX, fxY, centerX, centerY);
+          const ax5H = 24 * scale;
+          lensPos.push(lensWorld(fxX, fxY, angle, ax5H / 2 + 2 * scale));
+        }
         angles.push(angle);
-
-        // Lens world position
-        const pinH = 28 * scale, ax5H = 24 * scale;
-        const lensOff = fx.type === 'pinspot'
-          ? pinH / 2 + 4 * scale
-          : ax5H / 2 + 2 * scale;
-        lensPos.push(lensWorld(fxX, fxY, angle, lensOff));
 
         // Drifting aim point (post-ignition wander)
         const driftX = Math.sin((elapsed / fx.driftPeriod) * 2 * Math.PI + fx.driftPhase) * DRIFT_AMP_X * cw;

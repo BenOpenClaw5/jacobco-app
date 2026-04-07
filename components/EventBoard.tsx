@@ -15,6 +15,7 @@ import CreateCustomCardModal from './CreateCustomCardModal';
 import Logo from './Logo';
 import Link from 'next/link';
 import { STAGE_COLORS } from '@/lib/caseColors';
+import TeamSelect from './TeamSelect';
 
 interface EventBoardProps { eventId: string; }
 
@@ -79,6 +80,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('pool');
+  const [teamMembers, setTeamMembers] = useState<string[]>([]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -90,12 +92,18 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       ]);
       if (eventRes.error) throw eventRes.error;
       setEvent(eventRes.data);
+      setTeamMembers(eventRes.data.team_members ?? []);
       setDisplayCards(buildDisplayCards(casesRes.data as InventoryCase[], cardsRes.data as EventCard[]));
     } catch (err) { console.error(err); }
     finally { setIsLoading(false); }
   }, [eventId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  async function handleTeamChange(members: string[]) {
+    setTeamMembers(members);
+    await supabase.from('events').update({ team_members: members }).eq('id', eventId);
+  }
 
   function handleCardUpdated(updates: Partial<DisplayCard> & { eventCardId: string }) {
     setDisplayCards(prev => prev.map(card => {
@@ -240,6 +248,14 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             )}
           </div>
         )}
+
+        {/* Team */}
+        <div className="mt-5">
+          <div className="text-[9px] tracking-[0.28em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+            Team
+          </div>
+          <TeamSelect selected={teamMembers} onChange={handleTeamChange} placeholder="Assign team members..." />
+        </div>
 
         {/* Progress */}
         <div className="mt-5">
