@@ -12,12 +12,14 @@ interface TeamSelectProps {
   selected: string[];
   onChange: (members: string[]) => void;
   placeholder?: string;
+  openUp?: boolean;
 }
 
 export default function TeamSelect({
   selected,
   onChange,
   placeholder = 'Assign team members...',
+  openUp = false,
 }: TeamSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,7 +122,7 @@ export default function TeamSelect({
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 4px)',
+            ...(openUp ? { bottom: 'calc(100% + 4px)' } : { top: 'calc(100% + 4px)' }),
             left: 0,
             right: 0,
             zIndex: 200,

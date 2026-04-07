@@ -83,7 +83,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
           />
           <motion.div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             <motion.div
-              className="w-full sm:max-w-md overflow-hidden"
+              className="w-full sm:max-w-md overflow-y-auto max-h-[92vh]"
               style={{ background: '#0c1317', borderTop: '1px solid rgba(255,255,255,0.08)' }}
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -184,7 +184,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                   <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
                     Team
                   </label>
-                  <TeamSelect selected={teamMembers} onChange={setTeamMembers} />
+                  <TeamSelect selected={teamMembers} onChange={setTeamMembers} openUp />
                 </div>
 
                 {error && <p className="text-xs" style={{ color: '#ff6b6b' }}>{error}</p>}
