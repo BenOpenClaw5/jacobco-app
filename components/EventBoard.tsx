@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ChevronLeft, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { Plus, ChevronLeft, MapPin, Calendar, Loader2, ExternalLink, RotateCcw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Event, InventoryCase, EventCard, DisplayCard, Stage, STAGES } from '@/lib/types';
+import { Event, InventoryCase, EventCard, DisplayCard, Stage, STAGES, calcReadiness } from '@/lib/types';
 import { playCardMove } from '@/lib/sounds';
 import ProgressBar from './ProgressBar';
 import StageColumn from './StageColumn';
@@ -37,6 +38,9 @@ function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCar
       isCustom: false, stage: ec?.stage ?? null,
       notes: ec?.notes, approved_by: ec?.approved_by, prepped_by: ec?.prepped_by,
       images: ec?.images ?? [],
+      caseShop: ic.shop,
+      standardLightCount: ic.standard_light_count,
+      actualLightCount: ic.actual_light_count,
     });
   }
   for (const ec of eventCards.filter(e => e.is_custom)) {
@@ -56,7 +60,18 @@ function formatDate(dateStr?: string) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+const SHOP_ACCENT: Record<string, string> = {
+  Orlando: 'rgba(100,160,210,0.7)',
+  Dallas:  'rgba(210,160,80,0.7)',
+};
+
+const READINESS_COLOR = (score: number) =>
+  score >= 80 ? 'rgba(120,200,140,0.8)'
+  : score >= 40 ? 'rgba(210,160,80,0.8)'
+  : 'rgba(220,100,80,0.7)';
+
 export default function EventBoard({ eventId }: EventBoardProps) {
+  const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [displayCards, setDisplayCards] = useState<DisplayCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,34 +152,75 @@ export default function EventBoard({ eventId }: EventBoardProps) {
         }}
       >
         <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
+          <Link href="/events" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
             <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)' }} />
           </Link>
           <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
           <Logo size="sm" asLink={false} />
         </div>
 
-        <button
-          onClick={() => setIsCustomModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
-          style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}
-        >
-          <Plus size={10} strokeWidth={1.5} />
-          <span className="hidden sm:inline">Custom</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push(`/return/${eventId}`)}
+            className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
+            style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
+          >
+            <RotateCcw size={10} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Return</span>
+          </button>
+          <button
+            onClick={() => setIsCustomModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
+            style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}
+          >
+            <Plus size={10} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Custom</span>
+          </button>
+        </div>
       </header>
 
       {/* Event header */}
       <div className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* Google Doc link */}
+        {event.google_doc_url && (
+          <a href={event.google_doc_url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 mb-4 transition-opacity hover:opacity-60 w-fit"
+            style={{ fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(100,160,210,0.7)', fontFamily: 'var(--font-josefin)' }}>
+            <ExternalLink size={10} strokeWidth={1.5} />
+            Courtney Deck / Doc
+          </a>
+        )}
+
         <div className="text-[9px] tracking-[0.3em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
           Event
         </div>
-        <h1
-          className="text-2xl font-light tracking-[0.04em]"
-          style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
-        >
-          {event.name}
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-light tracking-[0.04em]" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+              {event.name}
+            </h1>
+            {event.primary_shop && (
+              <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: SHOP_ACCENT[event.primary_shop] ?? 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                {event.primary_shop}
+              </span>
+            )}
+          </div>
+          {/* Readiness score */}
+          {displayCards.filter(c => c.stage).length > 0 && (() => {
+            const score = calcReadiness(displayCards);
+            return (
+              <div className="flex-shrink-0 text-right">
+                <div style={{ fontSize: '22px', fontWeight: 100, color: READINESS_COLOR(score), fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
+                  {score}%
+                </div>
+                <div style={{ fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '2px' }}>
+                  Ready
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
         {(event.location || event.event_start_date || event.load_by_date) && (
           <div className="flex items-center gap-4 mt-2 flex-wrap">
             {event.location && (

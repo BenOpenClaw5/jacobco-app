@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Josefin_Sans, Urbanist } from 'next/font/google';
 import './globals.css';
+import ClientShell from '@/components/ClientShell';
 
 const josefin = Josefin_Sans({
   subsets: ['latin'],
@@ -17,8 +18,8 @@ const urbanist = Urbanist({
 });
 
 export const metadata: Metadata = {
-  title: 'Jacob Co — Event Prep Board',
-  description: 'Luxury event lighting production management',
+  title: 'Jacob Co — Production Operations',
+  description: 'Multi-location event lighting production management for Orlando & Dallas',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -37,7 +38,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${josefin.variable} ${urbanist.variable} h-full`}>
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <ClientShell>{children}</ClientShell>
+      </body>
     </html>
   );
 }

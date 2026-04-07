@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Event } from '@/lib/types';
+import { Event, Shop, SHOPS } from '@/lib/types';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface CreateEventModalProps {
 
 export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateEventModalProps) {
   const [name, setName] = useState('');
+  const [shop, setShop] = useState<Shop>('Orlando');
   const [location, setLocation] = useState('');
   const [loadByDate, setLoadByDate] = useState('');
   const [eventStartDate, setEventStartDate] = useState('');
@@ -23,7 +24,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
   const [error, setError] = useState('');
 
   function reset() {
-    setName(''); setLocation(''); setLoadByDate('');
+    setName(''); setShop('Orlando'); setLocation(''); setLoadByDate('');
     setEventStartDate(''); setEventEndDate(''); setNotes(''); setError('');
   }
 
@@ -34,11 +35,14 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
     try {
       const { data, error: dbError } = await supabase.from('events').insert({
         name: name.trim(),
+        primary_shop: shop,
         location: location.trim() || null,
         load_by_date: loadByDate || null,
         event_start_date: eventStartDate || null,
         event_end_date: eventEndDate || null,
         notes: notes.trim() || null,
+        last_updated_by: 'Guest User',
+        last_updated_at: new Date().toISOString(),
       }).select().single();
       if (dbError) throw dbError;
       onCreated(data as Event);
@@ -123,6 +127,25 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                     />
                   </div>
                 ))}
+
+                <div>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    Shop
+                  </label>
+                  <div className="flex gap-2">
+                    {SHOPS.map(s => (
+                      <button key={s} type="button" onClick={() => setShop(s)}
+                        className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-all"
+                        style={{
+                          fontFamily: 'var(--font-josefin)',
+                          border: shop === s ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                          color: shop === s ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                        }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-5">
                   {[
