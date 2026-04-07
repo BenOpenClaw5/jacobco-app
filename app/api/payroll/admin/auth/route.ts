@@ -1,7 +1,7 @@
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const expected = process.env.PAYROLL_ADMIN_PASSWORD ?? 'admin1!';
+    const expected = process.env.PAYROLL_ADMIN_PASSWORD ?? 'jacobco2026';
     if (body.password === expected) {
       return Response.json({ ok: true });
     }
