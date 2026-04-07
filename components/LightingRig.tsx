@@ -2,166 +2,310 @@
 
 import { useEffect, useRef } from 'react';
 
-// ─── Fixture definitions ───────────────────────────────────────────────────
-interface FixtureDef {
-  xPct: number;       // 0–1 fraction of canvas width
-  yPct: number;       // 0–1 fraction of canvas height
-  r: number; g: number; b: number;
-  spreadDeg: number;  // half-angle of beam cone
-  breathePhase: number; // phase offset for sine breathing (radians)
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type FixtureType = 'pinspot' | 'ax5';
+
+interface Fixture {
+  xPct: number;
+  yPct: number;
+  type: FixtureType;
+  breathePhase: number;   // radians, offset for sine breathing
+  driftPhase: number;     // radians, offset for aim drift
+  driftPeriod: number;    // ms per drift cycle
+  termYPct: number;       // beam terminus as fraction of canvas height
+  perspectiveScale: number;
 }
 
-// Fire order: TL1, TR1, TL2, TR2, BL-AX5, BR-AX5
-const FIXTURES: FixtureDef[] = [
-  // Pinspots — top left (index 0, 1)
-  { xPct: 0.08, yPct: 0.04, r: 255, g: 240, b: 200, spreadDeg: 14, breathePhase: 0.00 },
-  { xPct: 0.18, yPct: 0.03, r: 255, g: 238, b: 195, spreadDeg: 14, breathePhase: 0.85 },
-  // Pinspots — top right (index 2, 3)
-  { xPct: 0.82, yPct: 0.03, r: 255, g: 238, b: 195, spreadDeg: 14, breathePhase: 1.70 },
-  { xPct: 0.92, yPct: 0.04, r: 255, g: 240, b: 200, spreadDeg: 14, breathePhase: 2.55 },
-  // AX5s — bottom (index 4, 5)
-  { xPct: 0.12, yPct: 0.93, r: 220, g: 235, b: 255, spreadDeg: 20, breathePhase: 3.40 },
-  { xPct: 0.88, yPct: 0.93, r: 220, g: 235, b: 255, spreadDeg: 20, breathePhase: 4.25 },
+// ─── Fixture layout ───────────────────────────────────────────────────────────
+//  [0] TL pinspot 1 · [1] TL pinspot 2
+//  [2] TR pinspot 1 · [3] TR pinspot 2
+//  [4] BL AX5       · [5] BR AX5
+
+const FIXTURES: Fixture[] = [
+  { xPct: 0.030, yPct: 0.06, type: 'pinspot', breathePhase: 0.0, driftPhase: 0.0,  driftPeriod: 9200,  termYPct: 0.60, perspectiveScale: 1.00 },
+  { xPct: 0.072, yPct: 0.06, type: 'pinspot', breathePhase: 0.4, driftPhase: 1.2,  driftPeriod: 10800, termYPct: 0.60, perspectiveScale: 1.00 },
+  { xPct: 0.928, yPct: 0.06, type: 'pinspot', breathePhase: 0.8, driftPhase: 2.4,  driftPeriod: 8600,  termYPct: 0.60, perspectiveScale: 1.00 },
+  { xPct: 0.970, yPct: 0.06, type: 'pinspot', breathePhase: 1.3, driftPhase: 3.7,  driftPeriod: 11400, termYPct: 0.60, perspectiveScale: 1.00 },
+  { xPct: 0.040, yPct: 0.90, type: 'ax5',     breathePhase: 1.9, driftPhase: 0.9,  driftPeriod: 9800,  termYPct: 0.40, perspectiveScale: 0.88 },
+  { xPct: 0.960, yPct: 0.90, type: 'ax5',     breathePhase: 2.6, driftPhase: 2.1,  driftPeriod: 10400, termYPct: 0.40, perspectiveScale: 0.88 },
 ];
 
-// All beams converge here — center of "Production Operations" text
+// All beams converge on this center point — where "Production Operations" text lives
 const TARGET = { xPct: 0.50, yPct: 0.44 };
 
-const FIRE_ORDER      = [0, 2, 1, 3, 4, 5]; // TL1, TR1, TL2, TR2, BL, BR
-const STAGGER_MS      = 175;
-const INITIAL_DELAY   = 450; // ms before first light fires
-const FLICKER_MS      = 170;
-const BREATHE_AMP     = 0.08;
-const BREATHE_PERIOD  = 4200; // ms per sine cycle
+// Ignition — each fixture fires at this ms offset after initial delay
+const IGNITION_TIMES = [0, 150, 280, 420, 600, 820]; // ms
+const INITIAL_DELAY  = 350;  // ms before first light
+const FADE_MS        = 200;  // ms to fade from 0 → 1 (ease-out, no flicker)
+const BREATHE_AMP    = 0.08;
+const BREATHE_PERIOD = 4000; // ms
+const DRIFT_AMP_X    = 0.015;
+const DRIFT_AMP_Y    = 0.015;
+const DONE_MS        = INITIAL_DELAY + 820 + FADE_MS; // when last fixture is fully on
 
-// ─── Cone layer definitions ───────────────────────────────────────────────
-const CONE_LAYERS = [
-  { spread: 1.00, srcA: 0.030, dstA: 0.000 }, // outer haze
-  { spread: 0.58, srcA: 0.065, dstA: 0.000 }, // mid haze
-  { spread: 0.28, srcA: 0.110, dstA: 0.005 }, // inner
-  { spread: 0.09, srcA: 0.190, dstA: 0.015 }, // core beam
-];
+// ─── Helper: polyfilled roundRect ─────────────────────────────────────────────
 
-// ─── Draw a single fixture's beam ────────────────────────────────────────
-function drawCone(
+function rRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, r);
+  } else {
+    const rx = Math.min(r, w / 2), ry = Math.min(r, h / 2);
+    ctx.moveTo(x + rx, y);
+    ctx.lineTo(x + w - rx, y); ctx.quadraticCurveTo(x + w, y, x + w, y + ry);
+    ctx.lineTo(x + w, y + h - ry); ctx.quadraticCurveTo(x + w, y + h, x + w - rx, y + h);
+    ctx.lineTo(x + rx, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - ry);
+    ctx.lineTo(x, y + ry); ctx.quadraticCurveTo(x, y, x + rx, y);
+    ctx.closePath();
+  }
+}
+
+// ─── Draw pinspot fixture body ────────────────────────────────────────────────
+
+function drawPinspot(ctx: CanvasRenderingContext2D, sx: number, sy: number, angle: number, intensity: number, scale: number) {
+  if (intensity < 0.005) return;
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  const bw = 13, bh = 20;
+
+  // Body
+  const bodyGrad = ctx.createLinearGradient(-bw / 2, -bh / 2, bw / 2, bh / 2);
+  bodyGrad.addColorStop(0,    '#3c3c3c');
+  bodyGrad.addColorStop(0.35, '#272727');
+  bodyGrad.addColorStop(1,    '#1c1c1c');
+  ctx.beginPath(); rRect(ctx, -bw / 2, -bh / 2, bw, bh, 3);
+  ctx.fillStyle = bodyGrad; ctx.fill();
+
+  // Body edge
+  ctx.strokeStyle = 'rgba(75,75,75,0.55)'; ctx.lineWidth = 0.7;
+  ctx.beginPath(); rRect(ctx, -bw / 2, -bh / 2, bw, bh, 3); ctx.stroke();
+
+  // Specular highlight on top edge
+  ctx.strokeStyle = 'rgba(255,255,255,0.13)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-bw / 2 + 3, -bh / 2 + 2.5);
+  ctx.lineTo(bw / 2 - 3,  -bh / 2 + 2.5);
+  ctx.stroke();
+
+  // Yoke arms — two thin brackets from body sides up to mount bar
+  ctx.strokeStyle = '#2e2e2e'; ctx.lineWidth = 2.8;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-bw / 2 + 1, -2); ctx.lineTo(-bw / 2 - 5, -bh / 2 - 11); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bw / 2 - 1,  -2); ctx.lineTo(bw / 2 + 5,  -bh / 2 - 11); ctx.stroke();
+  // Crossbar
+  ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(-bw / 2 - 5, -bh / 2 - 11); ctx.lineTo(bw / 2 + 5, -bh / 2 - 11); ctx.stroke();
+
+  // Lens — at the front (bottom) of body
+  const lensY = bh / 2 - 1;
+  const lensR = 7;
+  const li = Math.min(1, intensity);
+  const lensGrad = ctx.createRadialGradient(0, lensY, 0, 0, lensY, lensR);
+  lensGrad.addColorStop(0.00, `rgba(255,250,225,${0.97 * li})`);
+  lensGrad.addColorStop(0.30, `rgba(255,228,150,${0.85 * li})`);
+  lensGrad.addColorStop(0.72, `rgba(80,55,18,0.70)`);
+  lensGrad.addColorStop(1.00, 'rgba(14,11,7,0.95)');
+  ctx.fillStyle = lensGrad;
+  ctx.beginPath(); ctx.arc(0, lensY, lensR, 0, Math.PI * 2); ctx.fill();
+
+  // Lens ring
+  ctx.strokeStyle = '#545454'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, lensY, lensR, 0, Math.PI * 2); ctx.stroke();
+
+  // Inner lens detail ring
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.arc(0, lensY, lensR * 0.52, 0, Math.PI * 2); ctx.stroke();
+
+  ctx.restore();
+}
+
+// ─── Draw AX5 fixture body ────────────────────────────────────────────────────
+
+function drawAX5(ctx: CanvasRenderingContext2D, sx: number, sy: number, angle: number, intensity: number, scale: number) {
+  if (intensity < 0.005) return;
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  const bw = 22, bh = 28;
+
+  // Body
+  const bodyGrad = ctx.createLinearGradient(-bw / 2, -bh / 2, bw / 2, bh / 2);
+  bodyGrad.addColorStop(0,    '#404040');
+  bodyGrad.addColorStop(0.28, '#2c2c2c');
+  bodyGrad.addColorStop(1,    '#1f1f1f');
+  ctx.beginPath(); rRect(ctx, -bw / 2, -bh / 2, bw, bh, 4);
+  ctx.fillStyle = bodyGrad; ctx.fill();
+
+  ctx.strokeStyle = 'rgba(65,65,65,0.50)'; ctx.lineWidth = 0.9;
+  ctx.beginPath(); rRect(ctx, -bw / 2, -bh / 2, bw, bh, 4); ctx.stroke();
+
+  // Specular
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-bw / 2 + 4, -bh / 2 + 2.5);
+  ctx.lineTo(bw / 2 - 4,  -bh / 2 + 2.5);
+  ctx.stroke();
+
+  // Thicker yoke arms
+  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-bw / 2 + 2, -3); ctx.lineTo(-bw / 2 - 7, -bh / 2 - 13); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bw / 2 - 2,  -3); ctx.lineTo(bw / 2 + 7,  -bh / 2 - 13); ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-bw / 2 - 7, -bh / 2 - 13); ctx.lineTo(bw / 2 + 7, -bh / 2 - 13); ctx.stroke();
+
+  // Front bezel outer ring
+  const bezelY = bh / 2 - 2;
+  ctx.strokeStyle = '#3e3e3e'; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.arc(0, bezelY, 18, 0, Math.PI * 2); ctx.stroke();
+
+  // Inner bezel ring
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.arc(0, bezelY, 14, 0, Math.PI * 2); ctx.stroke();
+
+  // Three LED lenses in triangle formation
+  const li = Math.min(1, intensity);
+  const lensPositions = [
+    { x: 0,  y: bezelY - 7 },
+    { x: -7, y: bezelY + 4.5 },
+    { x:  7, y: bezelY + 4.5 },
+  ];
+
+  for (const lp of lensPositions) {
+    const lg = ctx.createRadialGradient(lp.x, lp.y, 0, lp.x, lp.y, 5.5);
+    lg.addColorStop(0.00, `rgba(255,250,220,${0.97 * li})`);
+    lg.addColorStop(0.30, `rgba(255,222,135,${0.82 * li})`);
+    lg.addColorStop(0.75, `rgba(85,58,18,0.68)`);
+    lg.addColorStop(1.00, 'rgba(14,11,7,0.95)');
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.arc(lp.x, lp.y, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#505050'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(lp.x, lp.y, 5.5, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ─── Draw a single beam ───────────────────────────────────────────────────────
+
+function drawBeam(
   ctx: CanvasRenderingContext2D,
-  fx: FixtureDef,
+  sx: number,
+  sy: number,
+  aimX: number,
+  aimY: number,
+  termYPct: number,
+  cw: number,
+  ch: number,
   intensity: number,
-  w: number,
-  h: number,
   isMobile: boolean,
 ) {
-  if (intensity < 0.002) return;
+  if (intensity < 0.005) return;
 
-  const sx = fx.xPct * w;
-  const sy = fx.yPct * h;
-  const tx = TARGET.xPct * w;
-  const ty = TARGET.yPct * h;
+  // Direction from source to aim
+  const adx = aimX - sx, ady = aimY - sy;
+  const alen = Math.sqrt(adx * adx + ady * ady);
+  const nx = adx / alen, ny = ady / alen;
+  const px = -ny, py = nx; // perpendicular
 
-  const dx = tx - sx;
-  const dy = ty - sy;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  const nx = dx / len;
-  const ny = dy / len;
-  // Perpendicular
-  const px = -ny;
-  const py =  nx;
+  // Find terminus: extend along beam direction to termination Y
+  const termY = termYPct * ch;
+  let beamLen: number;
+  if (Math.abs(ny) > 0.01) {
+    const t = (termY - sy) / ny;
+    beamLen = Math.max(t, alen * 0.8); // at least 80% of source→aim distance
+  } else {
+    beamLen = alen * 1.3;
+  }
+  const ex = sx + nx * beamLen;
+  const ey = sy + ny * beamLen;
 
-  const halfW  = Math.tan((fx.spreadDeg * Math.PI) / 180) * len;
-  const ext    = 0.14;
-  const ex     = tx + nx * len * ext;
-  const ey     = ty + ny * len * ext;
-  const eHW    = halfW * (1 + ext);
-
-  const mScale = isMobile ? 0.70 : 1.0;
+  const mScale = isMobile ? 0.65 : 1.0;
   const base   = intensity * mScale;
 
-  for (const layer of CONE_LAYERS) {
-    const lw = eHW * layer.spread;
+  // Four beam layers — inner to outer
+  const layers = [
+    { degHalf: 8,  peak: 0.35 },
+    { degHalf: 14, peak: 0.20 },
+    { degHalf: 22, peak: 0.12 },
+    { degHalf: 32, peak: 0.06 },
+  ];
+
+  for (const layer of layers) {
+    const halfW = Math.tan(layer.degHalf * Math.PI / 180) * beamLen;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
-    ctx.lineTo(ex + px * lw, ey + py * lw);
-    ctx.lineTo(ex - px * lw, ey - py * lw);
+    ctx.lineTo(ex + px * halfW, ey + py * halfW);
+    ctx.lineTo(ex - px * halfW, ey - py * halfW);
     ctx.closePath();
 
+    // Non-linear gradient: quick drop near source, slow tail
     const grad = ctx.createLinearGradient(sx, sy, ex, ey);
-    grad.addColorStop(0.00, `rgba(${fx.r},${fx.g},${fx.b},${layer.srcA * base * 2.8})`);
-    grad.addColorStop(0.30, `rgba(${fx.r},${fx.g},${fx.b},${layer.srcA * base * 1.2})`);
-    grad.addColorStop(1.00, `rgba(${fx.r},${fx.g},${fx.b},${layer.dstA * base})`);
+    const a = layer.peak * base;
+    grad.addColorStop(0.00, `rgba(255,240,190,${a * 0.75})`); // source — bright but not peak
+    grad.addColorStop(0.06, `rgba(255,210,120,${a * 1.00})`); // quick ramp to peak
+    grad.addColorStop(0.25, `rgba(255,205,110,${a * 0.75})`); // gentle mid
+    grad.addColorStop(0.55, `rgba(220,175, 85,${a * 0.38})`); // slow decay
+    grad.addColorStop(0.82, `rgba(190,145, 65,${a * 0.12})`); // near terminus
+    grad.addColorStop(1.00, `rgba(160,120, 50,0)`);            // transparent terminus
     ctx.fillStyle = grad;
     ctx.fill();
   }
 
-  // Fixture head — warm point glow
-  const gR = Math.max(w, h) * 0.022;
-  const gl  = ctx.createRadialGradient(sx, sy, 0, sx, sy, gR);
-  gl.addColorStop(0.0, `rgba(${fx.r},${fx.g},${fx.b},${0.85 * base})`);
-  gl.addColorStop(0.4, `rgba(${fx.r},${fx.g},${fx.b},${0.18 * base})`);
-  gl.addColorStop(1.0, `rgba(${fx.r},${fx.g},${fx.b},0)`);
-  ctx.fillStyle = gl;
-  ctx.beginPath();
-  ctx.arc(sx, sy, gR, 0, Math.PI * 2);
-  ctx.fill();
+  // Dust streaks — thin lines slightly offset from beam axis
+  const streakCount = isMobile ? 1 : 3;
+  const coreHalfW = Math.tan(8 * Math.PI / 180) * beamLen;
+  const streakAlphas = [0.045, 0.028, 0.038];
+  const streakPerpOffsets = [-coreHalfW * 0.35, 0, coreHalfW * 0.40];
 
-  // Dark metallic housing dot
-  ctx.fillStyle = 'rgba(18,28,36,0.92)';
-  ctx.beginPath();
-  ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  for (let s = 0; s < streakCount; s++) {
+    const off = streakPerpOffsets[s];
+    const startFrac = 0.04 + s * 0.02;
+    const endFrac   = 0.88 - s * 0.06;
+    ctx.beginPath();
+    ctx.moveTo(sx + nx * beamLen * startFrac + px * off, sy + ny * beamLen * startFrac + py * off);
+    ctx.lineTo(sx + nx * beamLen * endFrac   + px * off, sy + ny * beamLen * endFrac   + py * off);
+    ctx.strokeStyle = `rgba(255,225,155,${streakAlphas[s] * base})`;
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  }
 }
 
-// ─── Text convergence glow ────────────────────────────────────────────────
-function drawTextGlow(
-  ctx: CanvasRenderingContext2D,
-  totalIntensity: number,
-  w: number,
-  h: number,
-  isMobile: boolean,
-) {
-  const tx   = TARGET.xPct * w;
-  const ty   = TARGET.yPct * h;
-  const r    = w * (isMobile ? 0.44 : 0.36);
-  const a    = (totalIntensity / FIXTURES.length) * (isMobile ? 0.65 : 1.0);
+// ─── Center convergence glow (elliptical, very subtle) ────────────────────────
 
-  const grad = ctx.createRadialGradient(tx, ty, 0, tx, ty, r);
-  grad.addColorStop(0.00, `rgba(255,215,140,${0.075 * a})`);
-  grad.addColorStop(0.35, `rgba(255,200,100,${0.038 * a})`);
-  grad.addColorStop(0.70, `rgba(240,180, 80,${0.012 * a})`);
+function drawCenterGlow(ctx: CanvasRenderingContext2D, cw: number, ch: number, avgIntensity: number, isMobile: boolean) {
+  const cx = TARGET.xPct * cw;
+  const cy = TARGET.yPct * ch;
+  const rx = cw * 0.40;
+  const ry = ch * 0.25;
+  const a  = avgIntensity * (isMobile ? 0.65 : 1.0);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1, ry / rx);
+
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  grad.addColorStop(0.00, `rgba(255,228,160,${0.12 * a})`);
+  grad.addColorStop(0.28, `rgba(255,210,120,${0.060 * a})`);
+  grad.addColorStop(0.60, `rgba(220,170, 80,${0.020 * a})`);
   grad.addColorStop(1.00, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
+  ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
-// ─── Flicker ignition for one fixture ────────────────────────────────────
-function igniteFixture(
-  intensities: React.MutableRefObject<number[]>,
-  idx: number,
-  onDone: () => void,
-) {
-  const start = performance.now();
-  function step(now: number) {
-    const t = Math.min((now - start) / FLICKER_MS, 1);
-    // Overshoot → settle: 0 → 1.2 → 0.85 → 1.0
-    let v: number;
-    if      (t < 0.35) v = (t / 0.35) * 1.20;
-    else if (t < 0.65) v = 1.20 - ((t - 0.35) / 0.30) * 0.35;
-    else               v = 0.85 + ((t - 0.65) / 0.35) * 0.15;
-    intensities.current[idx] = v;
-    if (t < 1) requestAnimationFrame(step);
-    else { intensities.current[idx] = 1.0; onDone(); }
-  }
-  requestAnimationFrame(step);
-}
+// ─── Component ────────────────────────────────────────────────────────────────
 
-// ─── Component ────────────────────────────────────────────────────────────
 export default function LightingRig() {
-  const canvasRef       = useRef<HTMLCanvasElement>(null);
-  const intensities     = useRef<number[]>([0, 0, 0, 0, 0, 0]);
-  const rafRef          = useRef<number>(0);
-  const ignitionDone    = useRef(false);
-  const ignitionTs      = useRef(0);
-  const timers          = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const lastFrameTs     = useRef(0);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const rafRef       = useRef<number>(0);
+  const startTsRef   = useRef<number>(0);
+  const lastFrameRef = useRef<number>(0);
+  const timers       = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -172,38 +316,89 @@ export default function LightingRig() {
     function resize() {
       if (!canvas) return;
       canvas.width  = canvas.offsetWidth  || window.innerWidth;
-      canvas.height = canvas.offsetHeight || window.innerHeight * 0.8;
+      canvas.height = canvas.offsetHeight || Math.round(window.innerHeight * 0.8);
     }
 
     function draw(ts: number) {
-      // 60 fps cap
-      if (ts - lastFrameTs.current < 14) {
-        rafRef.current = requestAnimationFrame(draw);
-        return;
-      }
-      lastFrameTs.current = ts;
-
+      // 60fps cap
+      if (ts - lastFrameRef.current < 14) { rafRef.current = requestAnimationFrame(draw); return; }
+      lastFrameRef.current = ts;
       if (!canvas || !ctx) return;
+
+      // Start timestamp on first frame
+      if (startTsRef.current === 0) startTsRef.current = ts;
+      const elapsed = ts - startTsRef.current;
+      const allDone = elapsed > DONE_MS;
+
       const cw = canvas.width;
       const ch = canvas.height;
-      const isMobile = cw < 640;
+      const isMobile = cw < 768;
 
       ctx.clearRect(0, 0, cw, ch);
 
+      // Draw beams first (behind fixtures), then fixtures on top
       let totalIntensity = 0;
+      const intensities: number[] = [];
+
       for (let i = 0; i < FIXTURES.length; i++) {
-        let v = intensities.current[i];
-        if (ignitionDone.current && v > 0.01) {
-          const elapsed = ts - ignitionTs.current;
-          v = Math.max(0, v + Math.sin(
-            (elapsed / BREATHE_PERIOD) * 2 * Math.PI + FIXTURES[i].breathePhase
-          ) * BREATHE_AMP);
+        const fx = FIXTURES[i];
+
+        // ── Intensity ──
+        const fixtureStart = INITIAL_DELAY + IGNITION_TIMES[i];
+        let raw: number;
+        if (elapsed < fixtureStart) {
+          raw = 0;
+        } else {
+          const t = Math.min((elapsed - fixtureStart) / FADE_MS, 1);
+          raw = 1 - Math.pow(1 - t, 2); // ease-out
         }
-        totalIntensity += v;
-        drawCone(ctx, FIXTURES[i], v, cw, ch, isMobile);
+
+        let intensity = raw;
+        if (allDone && raw >= 1) {
+          const breathe = Math.sin((elapsed / BREATHE_PERIOD) * 2 * Math.PI + fx.breathePhase) * BREATHE_AMP;
+          intensity = Math.max(0, 1 + breathe);
+        }
+        intensities.push(intensity);
+        totalIntensity += intensity;
+
+        // ── Aim drift ──
+        const driftX = Math.sin((elapsed / fx.driftPeriod) * 2 * Math.PI + fx.driftPhase) * DRIFT_AMP_X * cw;
+        const driftY = Math.cos((elapsed / (fx.driftPeriod * 0.73)) * 2 * Math.PI + fx.driftPhase * 1.3) * DRIFT_AMP_Y * ch;
+        const aimX = TARGET.xPct * cw + driftX;
+        const aimY = TARGET.yPct * ch + driftY;
+
+        const sx = fx.xPct * cw;
+        const sy = fx.yPct * ch;
+
+        // ── Draw beam ──
+        drawBeam(ctx, sx, sy, aimX, aimY, fx.termYPct, cw, ch, intensity, isMobile);
       }
 
-      drawTextGlow(ctx, totalIntensity, cw, ch, isMobile);
+      // Center glow behind fixtures
+      drawCenterGlow(ctx, cw, ch, totalIntensity / FIXTURES.length, isMobile);
+
+      // Draw fixture bodies on top of beams
+      for (let i = 0; i < FIXTURES.length; i++) {
+        const fx = FIXTURES[i];
+        const sx = fx.xPct * cw;
+        const sy = fx.yPct * ch;
+        const intensity = intensities[i];
+
+        const driftX = Math.sin((elapsed / fx.driftPeriod) * 2 * Math.PI + fx.driftPhase) * DRIFT_AMP_X * cw;
+        const driftY = Math.cos((elapsed / (fx.driftPeriod * 0.73)) * 2 * Math.PI + fx.driftPhase * 1.3) * DRIFT_AMP_Y * ch;
+        const aimX = TARGET.xPct * cw + driftX;
+        const aimY = TARGET.yPct * ch + driftY;
+
+        // Angle: rotate body so its lens faces the aim point
+        // Local +Y = forward (lens direction), so rotate by atan2(dy,dx) - π/2
+        const angle = Math.atan2(aimY - sy, aimX - sx) - Math.PI / 2;
+
+        if (fx.type === 'pinspot') {
+          drawPinspot(ctx, sx, sy, angle, intensity, fx.perspectiveScale);
+        } else {
+          drawAX5(ctx, sx, sy, angle, intensity, fx.perspectiveScale);
+        }
+      }
 
       rafRef.current = requestAnimationFrame(draw);
     }
@@ -211,21 +406,6 @@ export default function LightingRig() {
     resize();
     window.addEventListener('resize', resize);
     rafRef.current = requestAnimationFrame(draw);
-
-    // ── Ignition sequence ──
-    let doneCount = 0;
-    FIRE_ORDER.forEach((fixtureIdx, order) => {
-      const t = setTimeout(() => {
-        igniteFixture(intensities, fixtureIdx, () => {
-          doneCount++;
-          if (doneCount === FIXTURES.length) {
-            ignitionDone.current = true;
-            ignitionTs.current   = performance.now();
-          }
-        });
-      }, INITIAL_DELAY + order * STAGGER_MS);
-      timers.current.push(t);
-    });
 
     return () => {
       cancelAnimationFrame(rafRef.current);

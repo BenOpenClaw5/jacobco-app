@@ -15,9 +15,9 @@ const TILES = [
   { href: '/lookup',    label: 'Case Lookup',    sub: 'Find any case instantly',      icon: Search,   delay: 0.18 },
 ];
 
-// Ignition sequence ends at: 450ms + 5 * 175ms + 170ms ≈ 1490ms
-// Text glow begins at ~1.5s after mount
-const GLOW_DELAY = 1.5;
+// Last fixture fully on at: 350ms + 820ms + 200ms = 1370ms
+// Text glow starts as lights settle
+const GLOW_DELAY = 1.4;
 
 export default function LandingPage() {
   const { openPalette } = usePalette();
@@ -132,14 +132,20 @@ export default function LandingPage() {
             Jacob Co Creative
           </motion.div>
 
-          {/* "Production" — warms to a lit glow once lights fire */}
+          {/* "Production" — kissed by warm light once rig fires */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(255,210,120,0)', '0 0 60px rgba(255,210,120,0.28)'] }}
+            animate={{
+              opacity: 1, y: 0,
+              textShadow: [
+                '0 0 0px rgba(255,210,120,0), 0 0 0px rgba(255,180,80,0)',
+                '0 0 80px rgba(255,210,120,0.15), 0 0 160px rgba(255,180,80,0.08)',
+              ],
+            }}
             transition={{
-              opacity: { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
-              y:       { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
-              textShadow: { duration: 1.4, delay: GLOW_DELAY, ease: 'easeOut' },
+              opacity:    { duration: 0.9, delay: 0.3,        ease: [0.16, 1, 0.3, 1] },
+              y:          { duration: 0.9, delay: 0.3,        ease: [0.16, 1, 0.3, 1] },
+              textShadow: { duration: 1.6, delay: GLOW_DELAY, ease: 'easeOut' },
             }}
             style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: '#ffffff', lineHeight: 1.05, marginBottom: 0 }}
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
@@ -147,14 +153,20 @@ export default function LandingPage() {
             Production
           </motion.h1>
 
-          {/* "Operations" — slightly cooler glow tone */}
+          {/* "Operations" — same glow, fractionally delayed */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(220,200,255,0)', '0 0 70px rgba(220,200,255,0.18)'] }}
+            animate={{
+              opacity: 1, y: 0,
+              textShadow: [
+                '0 0 0px rgba(255,210,120,0), 0 0 0px rgba(255,180,80,0)',
+                '0 0 80px rgba(255,210,120,0.12), 0 0 160px rgba(255,180,80,0.06)',
+              ],
+            }}
             transition={{
-              opacity: { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
-              y:       { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
-              textShadow: { duration: 1.6, delay: GLOW_DELAY + 0.1, ease: 'easeOut' },
+              opacity:    { duration: 0.9, delay: 0.44,            ease: [0.16, 1, 0.3, 1] },
+              y:          { duration: 0.9, delay: 0.44,            ease: [0.16, 1, 0.3, 1] },
+              textShadow: { duration: 1.8, delay: GLOW_DELAY + 0.15, ease: 'easeOut' },
             }}
             style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', lineHeight: 1.05, marginBottom: '36px' }}
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
@@ -208,9 +220,9 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
-            className="flex items-center gap-12 sm:gap-16"
+            className="flex items-center gap-10 sm:gap-14"
           >
-            {/* Stat 1: 2 Shops */}
+            {/* Stat: 2 Shops */}
             <div className="text-center">
               <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
                 2
@@ -220,12 +232,11 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Divider */}
-            <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
 
-            {/* Stat 2: ∞ Destinations */}
+            {/* Stat: ∞ Destinations — 29px so it visually matches "2" at weight 100 */}
             <div className="text-center">
-              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, fontVariantNumeric: 'normal' }}>
+              <div style={{ fontSize: '29px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, fontVariantNumeric: 'normal' }}>
                 ∞
               </div>
               <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
