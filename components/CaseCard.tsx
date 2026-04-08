@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { getCaseColor } from '@/lib/caseColors';
 import { DisplayCard } from '@/lib/types';
 
@@ -17,21 +16,22 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
   const hasToolsWarning = card.type === 'Tools' && card.has_tools_warning;
 
   return (
-    <motion.button
+    <button
+      type="button"
       onClick={onClick}
       className="w-full text-left relative overflow-hidden rounded-sm cursor-pointer select-none"
       style={{
         background: color.bg,
         border: `1px solid ${color.border}`,
+        transition: 'opacity 0.15s ease',
+        WebkitTapHighlightColor: 'transparent',
       }}
-      whileHover={{
-        borderColor: color.accent + '50',
-        background: color.bg.replace('0.25', '0.35'),
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLButtonElement).style.opacity = '0.8';
       }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.15, ease: 'easeOut' }}
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLButtonElement).style.opacity = '1';
+      }}
     >
       {/* Left accent line */}
       <div
@@ -85,6 +85,6 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
           </div>
         )}
       </div>
-    </motion.button>
+    </button>
   );
 }

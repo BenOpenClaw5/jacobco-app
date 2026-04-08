@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { DisplayCard } from '@/lib/types';
 import CaseCard from './CaseCard';
 
@@ -18,11 +17,6 @@ function groupByType(cards: DisplayCard[]): Record<string, DisplayCard[]> {
   }
   return groups;
 }
-
-const CONTAINER_VARIANTS = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.015, delayChildren: 0.03 } },
-};
 
 export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps) {
   const groups = groupByType(cards);
@@ -66,12 +60,7 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
           </p>
         </div>
       ) : (
-        <motion.div
-          className="space-y-5"
-          variants={CONTAINER_VARIANTS}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="space-y-5">
           {groupKeys.map(key => {
             const groupCards = groups[key];
             const label = key === '__custom__' ? 'Custom' : key;
@@ -91,7 +80,7 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
               </div>
             );
           })}
-        </motion.div>
+        </div>
       )}
     </div>
   );
