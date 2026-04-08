@@ -51,6 +51,16 @@ export default function CardDetailSheet({
     }
   }, [card]);
 
+  // ALL hooks must be called before any early return (Rules of Hooks)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const saveChecklistState = useCallback(async (state: Record<string, boolean>) => {
+    if (!card) return;
+    try {
+      const ecId = await ensureEventCard();
+      await supabase.from('event_cards').update({ checklist_state: state }).eq('id', ecId);
+    } catch (err) { console.error(err); }
+  }, [card]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!card) return null;
   const color = getCaseColor(card.type, card.customColor);
 
@@ -113,15 +123,6 @@ export default function CardDetailSheet({
     } catch (err) { console.error(err); }
     finally { setIsMoving(false); }
   }
-
-  const saveChecklistState = useCallback(async (state: Record<string, boolean>) => {
-    if (!card) return;
-    try {
-      const ecId = await ensureEventCard();
-      await supabase.from('event_cards').update({ checklist_state: state }).eq('id', ecId);
-    } catch (err) { console.error(err); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card]);
 
   function toggleChecklistItem(itemId: string) {
     const next = { ...checklistState, [itemId]: !checklistState[itemId] };
