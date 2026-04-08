@@ -203,17 +203,21 @@ export default function CardDetailSheet({
     <>
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div
-            className="fixed inset-0 z-40"
-            style={{ background: 'rgba(7,12,14,0.85)', backdropFilter: 'blur(6px)' }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-          />
-
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-none overflow-hidden"
+        <motion.div
+          key="sheet-backdrop"
+          className="fixed inset-0 z-40"
+          style={{ background: 'rgba(7,12,14,0.85)', backdropFilter: 'blur(6px)' }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="sheet-panel"
+          className="fixed bottom-0 left-0 right-0 z-50 rounded-t-none overflow-hidden"
             style={{
               background: '#0c1317',
               borderTop: `1px solid rgba(255,255,255,0.08)`,
@@ -439,42 +443,45 @@ export default function CardDetailSheet({
               </div>
             </div>
           </motion.div>
-        </>
       )}
     </AnimatePresence>
 
     {/* Lightbox */}
-    <AnimatePresence key="lightbox">
+    <AnimatePresence>
       {lightboxUrl && (
-        <>
-          <motion.div
-            className="fixed inset-0 z-[70]"
-            style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)' }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setLightboxUrl(null)}
+        <motion.div
+          key="lb-backdrop"
+          className="fixed inset-0 z-[70]"
+          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)' }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={() => setLightboxUrl(null)}
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {lightboxUrl && (
+        <motion.div
+          key="lb-image"
+          className="fixed inset-0 z-[71] flex items-center justify-center p-6"
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 32, stiffness: 300 }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxUrl}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            style={{ maxHeight: '88vh', boxShadow: '0 0 80px rgba(0,0,0,0.8)' }}
+            onClick={e => e.stopPropagation()}
           />
-          <motion.div
-            className="fixed inset-0 z-[71] flex items-center justify-center p-6"
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 32, stiffness: 300 }}
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
+            style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={lightboxUrl}
-              alt=""
-              className="max-w-full max-h-full object-contain"
-              style={{ maxHeight: '88vh', boxShadow: '0 0 80px rgba(0,0,0,0.8)' }}
-              onClick={e => e.stopPropagation()}
-            />
-            <button
-              onClick={() => setLightboxUrl(null)}
-              className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
-            >
-              <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
-            </button>
-          </motion.div>
-        </>
+            <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+          </button>
+        </motion.div>
       )}
     </AnimatePresence>
     </>
