@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed — iOS Safari crashes from JS-animated springs on mount
 import { X, Plus, Trash2, ChevronRight, Loader2, ZoomIn, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import { DisplayCard, Stage, STAGES, STAGE_META } from '@/lib/types';
 import { getCaseColor, STAGE_COLORS } from '@/lib/caseColors';
@@ -201,32 +201,31 @@ export default function CardDetailSheet({
 
   return (
     <>
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          key="sheet-backdrop"
-          className="fixed inset-0 z-40"
-          style={{ background: 'rgba(7,12,14,0.85)', backdropFilter: 'blur(6px)' }}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          onClick={onClose}
-        />
-      )}
-    </AnimatePresence>
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          key="sheet-panel"
-          className="fixed bottom-0 left-0 right-0 z-50 rounded-t-none overflow-hidden"
-            style={{
-              background: '#0c1317',
-              borderTop: `1px solid rgba(255,255,255,0.08)`,
-              maxHeight: '92vh',
-              boxShadow: '0 -40px 80px rgba(0,0,0,0.7)',
-            }}
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 32, stiffness: 280 }}
-          >
+      {/* Backdrop — CSS transition, no framer-motion */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 40,
+          background: 'rgba(7,12,14,0.85)', backdropFilter: 'blur(6px)',
+          opacity: isOpen ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
+      />
+      {/* Sheet — CSS transform transition */}
+      <div
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+          overflow: 'hidden',
+          background: '#0c1317',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          maxHeight: '92vh',
+          boxShadow: '0 -40px 80px rgba(0,0,0,0.7)',
+          transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
+      >
             {/* Drag indicator */}
             <div className="flex justify-center pt-4 pb-2">
               <div className="w-8 h-px" style={{ background: 'rgba(255,255,255,0.2)' }} />
@@ -442,48 +441,43 @@ export default function CardDetailSheet({
                 </div>
               </div>
             </div>
-          </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
 
-    {/* Lightbox */}
-    <AnimatePresence>
+      {/* Lightbox — plain conditional render, no framer-motion */}
       {lightboxUrl && (
-        <motion.div
-          key="lb-backdrop"
-          className="fixed inset-0 z-[70]"
-          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)' }}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={() => setLightboxUrl(null)}
-        />
-      )}
-    </AnimatePresence>
-    <AnimatePresence>
-      {lightboxUrl && (
-        <motion.div
-          key="lb-image"
-          className="fixed inset-0 z-[71] flex items-center justify-center p-6"
-          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ type: 'spring', damping: 32, stiffness: 300 }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxUrl}
-            alt=""
-            className="max-w-full max-h-full object-contain"
-            style={{ maxHeight: '88vh', boxShadow: '0 0 80px rgba(0,0,0,0.8)' }}
-            onClick={e => e.stopPropagation()}
-          />
-          <button
+        <>
+          <div
             onClick={() => setLightboxUrl(null)}
-            className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 70,
+              background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)',
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 71,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '24px',
+            }}
           >
-            <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
-          </button>
-        </motion.div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxUrl}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+              style={{ maxHeight: '88vh', boxShadow: '0 0 80px rgba(0,0,0,0.8)' }}
+              onClick={e => e.stopPropagation()}
+            />
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
+              style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
+            >
+              <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+            </button>
+          </div>
+        </>
       )}
-    </AnimatePresence>
     </>
   );
 }
