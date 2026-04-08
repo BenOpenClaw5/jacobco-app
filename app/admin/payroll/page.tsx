@@ -162,6 +162,66 @@ function PasswordGate({ onAuthed }: { onAuthed: () => void }) {
   );
 }
 
+// ─── Expected submitters ──────────────────────────────────────────────────────
+
+const EXPECTED_SUBMITTERS = ['Augustus (Gus)', 'Ben', 'Jace', 'Max', 'Mia', 'Tommy', 'Van'];
+
+function SubmissionStatusPanel({ submissions }: { submissions: Submission[] }) {
+  // Find the most recent pay period in submissions, or the most recent period overall
+  const latestStart = submissions.length > 0
+    ? submissions.reduce((latest, s) => s.pay_period_start > latest ? s.pay_period_start : latest, submissions[0].pay_period_start)
+    : null;
+
+  const currentPeriodSubs = latestStart
+    ? submissions.filter(s => s.pay_period_start === latestStart)
+    : [];
+
+  // Normalize names for matching (case insensitive, handle "Gus"/"Augustus")
+  function nameMatches(submittedName: string, expected: string): boolean {
+    const s = submittedName.toLowerCase().trim();
+    const e = expected.toLowerCase().replace(/\s*\(.*\)/, '').trim();
+    const eFull = expected.toLowerCase().trim();
+    return s === eFull || s === e || s.includes(e) || e.includes(s.split(' ')[0]);
+  }
+
+  if (!latestStart) return null;
+
+  const periodLabel = new Date(latestStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return (
+    <div style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.06)', padding: '20px', marginBottom: '24px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '14px' }}>
+        Current Period Submissions · {periodLabel}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        {EXPECTED_SUBMITTERS.map(name => {
+          const submitted = currentPeriodSubs.some(s => nameMatches(s.employee_name, name));
+          return (
+            <div key={name} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '6px 10px',
+              border: `1px solid ${submitted ? 'rgba(120,200,140,0.25)' : 'rgba(220,100,80,0.2)'}`,
+              background: submitted ? 'rgba(120,200,140,0.05)' : 'rgba(220,100,80,0.04)',
+            }}>
+              <div style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: submitted ? 'rgba(120,200,140,0.8)' : 'rgba(220,100,80,0.7)',
+                flexShrink: 0,
+              }} />
+              <span style={{ fontSize: '11px', fontWeight: 300, color: submitted ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+                {name.replace(' (Gus)', '')}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', marginTop: '12px' }}>
+        {currentPeriodSubs.length} of {EXPECTED_SUBMITTERS.length} submitted
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard ─────────────────────────────────────────────────────────────────
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
@@ -325,6 +385,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       </div>
 
       <main className="px-5 py-6">
+        {/* Submission status panel — always visible once data loads */}
+        {!loading && <SubmissionStatusPanel submissions={submissions} />}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />

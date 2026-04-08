@@ -281,10 +281,13 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
 }) {
   const budget = parseFloat(step1.budget) || 0;
 
-  // Group available (non-tools) cases by type
+  // Non-chargeable types hidden from booking
+  const NON_CHARGEABLE = new Set(['Tools', 'Air Wall Track', 'Circle Brackets', 'Clamp Brackets Tree', 'Tools Cases']);
+
+  // Group available (chargeable) cases by type
   const byType: Record<string, InventoryCase[]> = {};
   for (const c of allCases) {
-    if (c.type === 'Tools') continue;
+    if (NON_CHARGEABLE.has(c.type)) continue;
     if (unavailableIds.has(c.id)) continue;
     if (c.actual_light_count <= 0) continue;
     if (!byType[c.type]) byType[c.type] = [];

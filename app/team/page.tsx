@@ -17,7 +17,7 @@ const TEAM = [
   { name: 'Max Iturriaga',      titles: ['Assistant Technician'] },
   { name: 'Mia Goodwill',       titles: ['Management Assistant'] },
   { name: 'Abby Towe',          titles: ['Assistant Technician'] },
-  { name: 'Eden Tal',           titles: ['Assistant Technician'] },
+  { name: 'Eden Towe',          titles: ['Assistant Technician'] },
 ];
 
 // ─── Canvas constants ─────────────────────────────────────────────────────────
@@ -27,25 +27,14 @@ const CH = 240;   // canvas coordinate height
 const FX_X = 300; // fixture center X (canvas coords)
 const FX_Y = 52;  // fixture center Y (canvas coords)
 
-// Fixture geometry (local coords, drawn horizontal, rotated π/2 to point down)
-const BASE_W  = 22;  // local X extent
-const BASE_H  = 28;  // local Y extent (= on-screen width after rotation)
-const NECK_W  = 18;
-const NECK_H  = 10;
-const HEAD_R  = 16;
-const TOTAL_LEN = BASE_W + NECK_W + HEAD_R * 2.5; // 22+18+40 = 80
-
-// Lens position in local coords → LENS_Y on screen
-const _baseX  = -TOTAL_LEN / 2; // -40
-const _neckX  = _baseX + BASE_W; // -18
-const _headCX = _neckX + NECK_W + HEAD_R * 0.6; // -18+18+9.6 = 9.6
-const _faceX  = _headCX + HEAD_R * 0.15; // 9.6+2.4 = 12
-const LENS_Y  = FX_Y + _faceX; // 52 + 12 = 64
+// New fixture geometry — vertical orientation, downward-facing
+// Base top at FX_Y - 26, face (lens) at FX_Y + ~8
+const LENS_Y  = FX_Y + 8; // lens sits ~8px below fixture center
 
 // Beam
 const BEAM_START = LENS_Y;
 const BEAM_END   = 190;  // terminates at name text center
-const BEAM_LEN   = BEAM_END - BEAM_START; // 126
+const BEAM_LEN   = BEAM_END - BEAM_START;
 
 // Breathe
 const BREATHE_PERIOD = 4500;
@@ -69,108 +58,179 @@ function rRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.closePath();
 }
 
-// ─── Pinspot fixture ──────────────────────────────────────────────────────────
+// ─── Pinspot fixture (vertical, pointing down) ────────────────────────────────
 
 function drawPinspot(
   ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  angle: number,
+  cx: number,
+  cy: number,
+  _angle: number,   // kept for API compatibility, ignored — fixture always points down
   intensity: number,
 ) {
   if (intensity < 0.005) return;
 
   ctx.save();
   ctx.globalAlpha = Math.min(1, intensity);
-  ctx.translate(x, y);
-  ctx.rotate(angle);
+  ctx.translate(cx, cy);
 
-  const baseX = -TOTAL_LEN / 2; // -40
-  const baseY = -BASE_H / 2;    // -14
+  // === BASE — 3D rectangular box ===
+  const bW = 22, bH = 10;
+  const bX = -bW / 2, bY = -26;
 
-  // Drop shadow
-  ctx.shadowColor   = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur    = 8;
-  ctx.shadowOffsetX = 1;
-  ctx.shadowOffsetY = 2;
-
-  // Base
-  const baseGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + BASE_H);
-  baseGrad.addColorStop(0.0, '#d8d8d8');
-  baseGrad.addColorStop(0.3, '#b8b8b8');
-  baseGrad.addColorStop(0.7, '#989898');
-  baseGrad.addColorStop(1.0, '#787878');
-  ctx.fillStyle = baseGrad;
-  rRect(ctx, baseX, baseY, BASE_W, BASE_H, 3);
+  // Front face
+  const frontGrad = ctx.createLinearGradient(bX, bY, bX, bY + bH);
+  frontGrad.addColorStop(0, '#d0d0d0');
+  frontGrad.addColorStop(0.5, '#b8b8b8');
+  frontGrad.addColorStop(1, '#989898');
+  ctx.fillStyle = frontGrad;
+  rRect(ctx, bX, bY, bW, bH, 2);
   ctx.fill();
 
-  // Neck
-  const neckX = baseX + BASE_W; // -18
-  const neckY = -NECK_H / 2;   // -5
-  const neckGrad = ctx.createLinearGradient(neckX, neckY, neckX, neckY + NECK_H);
-  neckGrad.addColorStop(0.0, '#c8c8c8');
-  neckGrad.addColorStop(0.5, '#a0a0a0');
-  neckGrad.addColorStop(1.0, '#808080');
+  // Top face — lighter, suggests 3D depth
+  ctx.fillStyle = '#e8e8e8';
+  ctx.beginPath();
+  ctx.moveTo(bX, bY);
+  ctx.lineTo(bX + bW, bY);
+  ctx.lineTo(bX + bW + 4, bY - 4);
+  ctx.lineTo(bX + 4, bY - 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Right side face — darkest
+  ctx.fillStyle = '#787878';
+  ctx.beginPath();
+  ctx.moveTo(bX + bW, bY);
+  ctx.lineTo(bX + bW + 4, bY - 4);
+  ctx.lineTo(bX + bW + 4, bY - 4 + bH);
+  ctx.lineTo(bX + bW, bY + bH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Base rim highlight
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 0.75;
+  ctx.beginPath();
+  ctx.moveTo(bX + 2, bY + 1);
+  ctx.lineTo(bX + bW - 2, bY + 1);
+  ctx.stroke();
+
+  // Panel detail line
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(bX + bW * 0.5, bY + 2);
+  ctx.lineTo(bX + bW * 0.5, bY + bH - 2);
+  ctx.stroke();
+
+  // Base border
+  ctx.strokeStyle = 'rgba(60,60,60,0.4)';
+  ctx.lineWidth = 0.75;
+  rRect(ctx, bX, bY, bW, bH, 2);
+  ctx.stroke();
+
+  // === NECK ===
+  const neckW = 6, neckH = 14;
+  const neckX = -neckW / 2;
+  const neckY = bY + bH;
+
+  const neckGrad = ctx.createLinearGradient(neckX, 0, neckX + neckW, 0);
+  neckGrad.addColorStop(0, '#c0c0c0');
+  neckGrad.addColorStop(0.4, '#a8a8a8');
+  neckGrad.addColorStop(1, '#808080');
   ctx.fillStyle = neckGrad;
-  rRect(ctx, neckX, neckY, NECK_W, NECK_H, 2);
+  rRect(ctx, neckX, neckY, neckW, neckH, 1.5);
   ctx.fill();
 
-  // Head
-  const headCX = neckX + NECK_W + HEAD_R * 0.6; // 9.6
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(neckX + 1, neckY + 2);
+  ctx.lineTo(neckX + 1, neckY + neckH - 2);
+  ctx.stroke();
+
+  // === HEAD ===
+  const headR = 11;
+  const headCY = neckY + neckH + headR * 0.7;
+
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+
   const headGrad = ctx.createRadialGradient(
-    headCX - HEAD_R * 0.3, -HEAD_R * 0.3, 0,
-    headCX, 0, HEAD_R,
+    -headR * 0.3, headCY - headR * 0.3, 0,
+    0, headCY, headR,
   );
-  headGrad.addColorStop(0.0, '#e0e0e0');
-  headGrad.addColorStop(0.5, '#b0b0b0');
-  headGrad.addColorStop(1.0, '#606060');
+  headGrad.addColorStop(0, '#e8e8e8');
+  headGrad.addColorStop(0.4, '#c0c0c0');
+  headGrad.addColorStop(0.8, '#909090');
+  headGrad.addColorStop(1, '#606060');
   ctx.fillStyle = headGrad;
   ctx.beginPath();
-  ctx.arc(headCX, 0, HEAD_R, 0, Math.PI * 2);
+  ctx.arc(0, headCY, headR, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
-  // Base specular
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 0.75;
-  ctx.beginPath(); ctx.moveTo(baseX + 3, baseY + 2); ctx.lineTo(baseX + BASE_W - 3, baseY + 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(50,50,50,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, headCY, headR, 0, Math.PI * 2);
+  ctx.stroke();
 
-  // Head rim
-  ctx.strokeStyle = 'rgba(50,50,50,0.5)'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.arc(headCX, 0, HEAD_R, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, headCY, headR - 2, Math.PI * 1.1, Math.PI * 1.65);
+  ctx.stroke();
 
-  // Head specular arc
-  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(headCX, 0, HEAD_R - 2, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
+  // Face bezel
+  const faceY = headCY + headR * 0.2;
+  ctx.fillStyle = '#3a3a3a';
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 0.78, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Lens face outer ring
-  const faceX = headCX + HEAD_R * 0.15; // 12
-  ctx.fillStyle = '#444';
-  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 0.75, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#282828';
-  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 0.60, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 0.62, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Reflector cup
+  const reflGrad = ctx.createRadialGradient(0, faceY, 0, 0, faceY, headR * 0.55);
+  reflGrad.addColorStop(0, '#404040');
+  reflGrad.addColorStop(1, '#1a1a1a');
+  ctx.fillStyle = reflGrad;
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 0.55, 0, Math.PI * 2);
+  ctx.fill();
 
   // Lens aperture glow
-  const LENS_R = 10;
-  const lensGrad = ctx.createRadialGradient(faceX, 0, 0, faceX, 0, LENS_R);
-  lensGrad.addColorStop(0.00, 'rgba(255,252,230,1.0)');
-  lensGrad.addColorStop(0.25, 'rgba(255,235,160,0.95)');
-  lensGrad.addColorStop(0.60, 'rgba(255,200,90,0.7)');
-  lensGrad.addColorStop(1.00, 'rgba(255,170,50,0)');
+  const lensGrad = ctx.createRadialGradient(0, faceY, 0, 0, faceY, headR * 0.45);
+  lensGrad.addColorStop(0, 'rgba(255,252,220,1.0)');
+  lensGrad.addColorStop(0.2, 'rgba(255,240,180,0.95)');
+  lensGrad.addColorStop(0.5, 'rgba(255,210,120,0.7)');
+  lensGrad.addColorStop(0.8, 'rgba(255,180,70,0.3)');
+  lensGrad.addColorStop(1, 'rgba(255,150,40,0)');
   ctx.fillStyle = lensGrad;
-  ctx.beginPath(); ctx.arc(faceX, 0, LENS_R, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 0.45, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Outer lens halo (pulses with breathe via globalAlpha)
-  const haloGrad = ctx.createRadialGradient(faceX, 0, LENS_R, faceX, 0, HEAD_R * 1.6);
-  haloGrad.addColorStop(0.0, `rgba(255,210,100,${0.35 * intensity})`);
-  haloGrad.addColorStop(1.0, 'rgba(255,190,60,0)');
-  ctx.globalAlpha = 1; // halo drawn at full alpha, uses intensity directly
+  // Bright center flare
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 0.10, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer lens halo
+  const haloGrad = ctx.createRadialGradient(0, faceY, headR * 0.4, 0, faceY, headR * 1.2);
+  haloGrad.addColorStop(0, `rgba(255,220,120,${0.15 * intensity})`);
+  haloGrad.addColorStop(1, 'rgba(255,180,60,0)');
+  ctx.globalAlpha = 1;
   ctx.fillStyle = haloGrad;
-  ctx.beginPath(); ctx.arc(faceX, 0, HEAD_R * 1.6, 0, Math.PI * 2); ctx.fill();
-
-  // Lens hot-spot
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.beginPath(); ctx.arc(faceX - 1, -1, HEAD_R * 0.12, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, faceY, headR * 1.2, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }

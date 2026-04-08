@@ -74,6 +74,58 @@ const READINESS_COLOR = (score: number) =>
   : score >= 40 ? 'rgba(210,160,80,0.8)'
   : 'rgba(220,100,80,0.7)';
 
+// ─── Cybertruck Panel ─────────────────────────────────────────────────────────
+
+function CybertruckPanel({ assignedCount }: { assignedCount: number }) {
+  const isEmpty = assignedCount === 0;
+  const fits = !isEmpty && assignedCount <= 15;
+  const needsTrailer = !isEmpty && assignedCount > 15;
+
+  const statusText = isEmpty
+    ? 'No cases assigned yet'
+    : fits
+      ? `Fits in a Cybertruck`
+      : 'Use the trailer instead';
+
+  const statusColor = isEmpty
+    ? 'rgba(255,255,255,0.25)'
+    : fits
+      ? 'rgba(120,200,140,0.9)'
+      : 'rgba(220,165,60,0.9)';
+
+  const borderColor = isEmpty
+    ? 'var(--border-subtle)'
+    : fits
+      ? 'rgba(120,200,140,0.2)'
+      : 'rgba(220,165,60,0.2)';
+
+  const bg = isEmpty
+    ? 'transparent'
+    : fits
+      ? 'rgba(120,200,140,0.04)'
+      : 'rgba(220,165,60,0.04)';
+
+  return (
+    <div style={{ border: `1px solid ${borderColor}`, background: bg, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Minimalist truck silhouette */}
+      <svg width="22" height="14" viewBox="0 0 22 14" fill="none" style={{ flexShrink: 0, color: statusColor }}>
+        <rect x="0" y="4" width="13" height="8" rx="1" fill="currentColor" opacity="0.6"/>
+        <path d="M13 5.5 L13 2 L19 2 L22 7 L22 12 L13 12 Z" fill="currentColor" opacity="0.7"/>
+        <circle cx="4" cy="12" r="2" fill="currentColor"/>
+        <circle cx="17" cy="12" r="2" fill="currentColor"/>
+      </svg>
+      <div>
+        <div style={{ fontSize: '12px', fontWeight: 300, color: statusColor, fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em' }}>
+          {statusText}{fits ? ' ✓' : needsTrailer ? ' →' : ''}
+        </div>
+        <div style={{ fontSize: '9px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginTop: '2px' }}>
+          {assignedCount} case{assignedCount !== 1 ? 's' : ''} assigned
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EventBoard({ eventId }: EventBoardProps) {
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
@@ -260,12 +312,17 @@ export default function EventBoard({ eventId }: EventBoardProps) {
           </div>
         )}
 
-        {/* Team */}
-        <div className="mt-5">
-          <div className="text-[9px] tracking-[0.28em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
-            Team
+        {/* Team + Cybertruck (side by side on desktop, stacked on mobile) */}
+        <div className="mt-5 flex flex-col lg:flex-row lg:items-start gap-4">
+          <div className="flex-1">
+            <div className="text-[9px] tracking-[0.28em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+              Team
+            </div>
+            <TeamSelect selected={teamMembers} onChange={handleTeamChange} placeholder="Assign team members..." />
           </div>
-          <TeamSelect selected={teamMembers} onChange={handleTeamChange} placeholder="Assign team members..." />
+          <div className="lg:w-52 flex-shrink-0">
+            <CybertruckPanel assignedCount={displayCards.filter(c => c.stage).length} />
+          </div>
         </div>
 
         {/* Progress */}

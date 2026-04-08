@@ -60,7 +60,7 @@ const LABEL_STYLE: React.CSSProperties = {
   letterSpacing: '0.28em',
   textTransform: 'uppercase',
   fontWeight: 300,
-  color: 'rgba(255,255,255,0.3)',
+  color: 'rgba(255,255,255,0.5)',
   fontFamily: 'var(--font-josefin)',
   marginBottom: '12px',
 };
@@ -183,7 +183,8 @@ export default function PayrollPage() {
     e.preventDefault();
     setFormError('');
 
-    if (!name.trim()) { setFormError('Employee name is required.'); return; }
+    const resolvedName = name === '__other__' ? '' : name;
+    if (!resolvedName.trim()) { setFormError('Employee name is required.'); return; }
     if (!role) { setFormError('Please select your role.'); return; }
     if (!currentPeriod) { setFormError('No pay period selected.'); return; }
 
@@ -197,8 +198,9 @@ export default function PayrollPage() {
 
     setSubmitting(true);
     try {
+      const resolvedName = name === '__other__' ? '' : name;
       const payload = {
-        employee_name: name.trim(),
+        employee_name: resolvedName.trim(),
         employee_role: role,
         pay_period_start: toISO(currentPeriod.start),
         pay_period_end: toISO(currentPeriod.end),
@@ -308,15 +310,32 @@ export default function PayrollPage() {
           <SectionLabel>Employee</SectionLabel>
           <div className="space-y-6">
             <div>
-              <label style={LABEL_STYLE}>Full Name</label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Your name"
-                style={INPUT_STYLE}
-                className="placeholder:opacity-20"
-                autoComplete="name"
-              />
+              <label style={LABEL_STYLE}>Name</label>
+              <select
+                value={name.startsWith('__other__') ? '__other__' : name}
+                onChange={e => {
+                  if (e.target.value === '__other__') setName('__other__');
+                  else setName(e.target.value);
+                }}
+                style={{ ...INPUT_STYLE, colorScheme: 'dark', cursor: 'pointer' }}
+                className="appearance-none"
+              >
+                <option value="" disabled>Select your name</option>
+                {['Augustus (Gus)', 'Ben', 'Jace', 'Max', 'Mia', 'Tommy', 'Van'].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+                <option value="__other__">Other...</option>
+              </select>
+              {(name === '__other__' || (name && !['Augustus (Gus)', 'Ben', 'Jace', 'Max', 'Mia', 'Tommy', 'Van', '', '__other__'].includes(name))) && (
+                <input
+                  value={name === '__other__' ? '' : name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  style={{ ...INPUT_STYLE, marginTop: '12px' }}
+                  className="placeholder:opacity-20"
+                  autoFocus
+                />
+              )}
             </div>
             <div>
               <label style={LABEL_STYLE}>Role</label>

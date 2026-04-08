@@ -79,6 +79,7 @@ function LiveClock() {
 
 interface Countdown {
   overdue: boolean;
+  lastDay: boolean;
   days: number;
   hours: number;
   mins: number;
@@ -87,34 +88,72 @@ interface Countdown {
 
 function getCountdown(loadByDate: string | undefined, now: Date): Countdown | null {
   if (!loadByDate) return null;
+
+  // Compare calendar dates (YYYY-MM-DD) to correctly identify "today" and "past"
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+
+  if (todayStr > loadByDate) {
+    return { overdue: true, lastDay: false, days: 0, hours: 0, mins: 0, urgency: 'critical' };
+  }
+
+  if (todayStr === loadByDate) {
+    return { overdue: false, lastDay: true, days: 0, hours: 0, mins: 0, urgency: 'critical' };
+  }
+
+  // Future date — compute time remaining
   const loadBy = new Date(loadByDate + 'T00:00:00');
   const diffMs = loadBy.getTime() - now.getTime();
-  if (diffMs < 0) return { overdue: true, days: 0, hours: 0, mins: 0, urgency: 'critical' };
   const days  = Math.floor(diffMs / 86400000);
   const hours = Math.floor((diffMs % 86400000) / 3600000);
   const mins  = Math.floor((diffMs % 3600000) / 60000);
-  const urgency = days < 3 ? 'critical' : days < 7 ? 'warning' : 'normal';
-  return { overdue: false, days, hours, mins, urgency };
+
+  // < 3 calendar days away: treat as imminent
+  if (days < 3) {
+    return { overdue: false, lastDay: true, days, hours, mins, urgency: 'critical' };
+  }
+
+  const urgency = days < 7 ? 'warning' : 'normal';
+  return { overdue: false, lastDay: false, days, hours, mins, urgency };
 }
 
 function CountdownDisplay({ cd }: { cd: Countdown }) {
-  const color = cd.urgency === 'critical'
-    ? 'rgba(255,100,90,0.95)'
-    : cd.urgency === 'warning'
-      ? 'rgba(220,165,60,0.95)'
-      : 'rgba(200,220,240,0.9)';
+  const redColor = 'rgba(255,100,90,0.95)';
+  const amberColor = 'rgba(220,165,60,0.95)';
+  const whiteColor = 'rgba(200,220,240,0.9)';
 
   if (cd.overdue) {
     return (
       <div
         className="pulse-urgent"
-        style={{ fontSize: '13px', letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: 'var(--font-josefin)', fontWeight: 300, color }}
+        style={{
+          fontSize: '13px', letterSpacing: '0.25em', textTransform: 'uppercase',
+          fontFamily: 'var(--font-josefin)', fontWeight: 300, color: redColor,
+        }}
       >
         Overdue
       </div>
     );
   }
 
+  if (cd.lastDay) {
+    return (
+      <div
+        className="pulse-urgent"
+        style={{
+          fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+          fontFamily: 'var(--font-josefin)', fontWeight: 300, color: redColor,
+          textAlign: 'right', maxWidth: '110px',
+        }}
+      >
+        Last Day<br />to Load
+      </div>
+    );
+  }
+
+  const color = cd.urgency === 'warning' ? amberColor : whiteColor;
   const label = cd.days > 0
     ? `${cd.days}d ${cd.hours}h`
     : cd.hours > 0
@@ -127,7 +166,6 @@ function CountdownDisplay({ cd }: { cd: Countdown }) {
         Loads in
       </div>
       <div
-        className={cd.urgency === 'critical' ? 'pulse-urgent' : ''}
         style={{ fontSize: '22px', fontWeight: 200, letterSpacing: '0.04em', fontFamily: 'var(--font-josefin)', color, lineHeight: 1 }}
       >
         {label}
@@ -369,7 +407,7 @@ export default function WarRoomPage() {
   }, [loadData]);
 
   return (
-    <div style={{ background: '#070c0e', minHeight: '100vh' }}>
+    <div data-force-dark style={{ background: '#070c0e', minHeight: '100vh' }}>
       {/* Header bar */}
       <header
         style={{

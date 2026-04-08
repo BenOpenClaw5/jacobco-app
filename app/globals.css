@@ -17,34 +17,52 @@
   --bg: #070c0e;
   --surface: #0c1317;
   --surface-elevated: #151f28;
+  --card: #101820;
   --border: rgba(255,255,255,0.08);
   --border-subtle: rgba(255,255,255,0.04);
   --text-primary: #ffffff;
   --text-secondary: rgba(255,255,255,0.55);
-  --text-muted: rgba(255,255,255,0.28);
+  --text-muted: rgba(255,255,255,0.45);
+  --text-dim: rgba(255,255,255,0.28);
   --nav-bg: rgba(7,12,14,0.97);
   --nav-border: rgba(255,255,255,0.05);
   --accent: #D4B85B;
+  --accent-hover: #e8ca72;
+  --shadow: 0 2px 16px rgba(0,0,0,0.4);
+  --card-shadow: 0 1px 4px rgba(0,0,0,0.3);
   --landing-bg: #070c0e;
   --team-bg: #070c0e;
   --team-beam-boost: 1;
+  --input-border: rgba(255,255,255,0.1);
+  --input-text: #ffffff;
+  --input-placeholder: rgba(255,255,255,0.2);
+  --modal-bg: rgba(7,12,14,0.92);
 }
 
 :root[data-theme="light"] {
   --bg: #f5f0e8;
   --surface: #ede8df;
   --surface-elevated: #e5e0d6;
+  --card: #f0ebe2;
   --border: rgba(0,0,0,0.10);
   --border-subtle: rgba(0,0,0,0.06);
   --text-primary: #1a1610;
-  --text-secondary: #4a4540;
-  --text-muted: #7a7570;
+  --text-secondary: #3a3530;
+  --text-muted: #6a6560;
+  --text-dim: #8a8580;
   --nav-bg: rgba(245,240,232,0.95);
   --nav-border: rgba(0,0,0,0.08);
   --accent: #b8860b;
+  --accent-hover: #6b4e00;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  --card-shadow: 0 1px 4px rgba(0,0,0,0.06);
   --landing-bg: #1a1610;
   --team-bg: #f5f0e8;
   --team-beam-boost: 1.15;
+  --input-border: rgba(0,0,0,0.12);
+  --input-text: #1a1610;
+  --input-placeholder: rgba(0,0,0,0.25);
+  --modal-bg: rgba(230,225,215,0.95);
 }
 
 * {
@@ -115,9 +133,34 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 
 /* Ghost button style */
 .btn-ghost {
-  border: 1px solid rgba(255,255,255,0.5);
+  border: 1px solid var(--border);
   background: transparent;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: opacity 0.2s ease;
 }
 .btn-ghost:hover { opacity: 0.7; }
+
+/* Light mode: inputs use theme colors */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color-scheme: light;
+}
+
+/* War room always stays dark */
+[data-force-dark] {
+  --bg: #070c0e !important;
+  --surface: #0c1317 !important;
+  --surface-elevated: #151f28 !important;
+  --card: #101820 !important;
+  --border: rgba(255,255,255,0.08) !important;
+  --border-subtle: rgba(255,255,255,0.04) !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: rgba(255,255,255,0.55) !important;
+  --text-muted: rgba(255,255,255,0.45) !important;
+  --text-dim: rgba(255,255,255,0.28) !important;
+  --nav-bg: rgba(7,12,14,0.97) !important;
+  --accent: #D4B85B !important;
+  color: #ffffff;
+  background: #070c0e;
+}

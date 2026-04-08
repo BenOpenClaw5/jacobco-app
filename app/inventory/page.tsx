@@ -13,6 +13,20 @@ const SHOP_ACCENT: Record<Shop, string> = {
   Dallas:  'rgba(210,160,80,0.8)',
 };
 
+// ─── Price per light (fallback until DB column is populated) ─────────────────
+const PRICE_PER_LIGHT: Record<string, number> = {
+  'Dacore': 179, 'Pinspot': 150, 'Dual Beam': 189, 'Pixel Brick': 400,
+  'Pixel Tube': 500, 'AX2': 1500, 'AX5': 775, 'Plutos': 2000,
+  'Gobo': 0, 'Super Spot': 0, 'Chandelier': 0, 'Dome Lights': 0,
+  'Circle Brackets': 0, 'Air Wall Track': 0, 'Clamp Brackets Tree': 0,
+};
+
+function caseValue(c: { type: string; actual_light_count?: number; standard_light_count?: number; price_per_light?: number }): number {
+  const ppl = (c as { price_per_light?: number }).price_per_light ?? PRICE_PER_LIGHT[c.type] ?? 0;
+  const lights = c.actual_light_count ?? c.standard_light_count ?? 0;
+  return ppl * lights;
+}
+
 interface CaseWithContext extends InventoryCase {
   event?: Event;
   stage?: string;
@@ -114,16 +128,16 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Case Management
         </div>
         <div className="flex items-end justify-between gap-4 flex-wrap">
-          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
             Inventory
           </h1>
           {/* Shop filter */}
@@ -144,23 +158,39 @@ export default function InventoryPage() {
 
         {/* Summary stats */}
         {!loading && (
-          <div className="flex gap-6 mt-5 flex-wrap">
-            {[
-              { label: 'Cases', val: total.cases },
-              { label: 'Available', val: total.available, color: 'rgba(120,200,140,0.7)' },
-              { label: 'Assigned', val: total.assigned, color: 'rgba(100,160,210,0.7)' },
-              { label: 'Issues', val: total.issues, color: total.issues > 0 ? 'rgba(220,160,80,0.8)' : 'rgba(255,255,255,0.2)' },
-            ].map(({ label, val, color }) => (
-              <div key={label}>
-                <div style={{ fontSize: '20px', fontWeight: 100, color: color ?? 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
-                  {val}
+          <>
+            {/* Total inventory value */}
+            {(() => {
+              const totalValue = cases.reduce((sum, c) => sum + caseValue(c), 0);
+              return totalValue > 0 ? (
+                <div className="mt-4 mb-2">
+                  <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '4px' }}>
+                    Total Inventory Value
+                  </div>
+                  <div style={{ fontSize: '28px', fontWeight: 100, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.02em' }}>
+                    ${totalValue.toLocaleString()}
+                  </div>
                 </div>
-                <div style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
-                  {label}
+              ) : null;
+            })()}
+            <div className="flex gap-6 mt-4 flex-wrap">
+              {[
+                { label: 'Cases', val: total.cases },
+                { label: 'Available', val: total.available, color: 'rgba(120,200,140,0.7)' },
+                { label: 'Assigned', val: total.assigned, color: 'rgba(100,160,210,0.7)' },
+                { label: 'Issues', val: total.issues, color: total.issues > 0 ? 'rgba(220,160,80,0.8)' : 'var(--text-dim)' },
+              ].map(({ label, val, color }) => (
+                <div key={label}>
+                  <div style={{ fontSize: '20px', fontWeight: 100, color: color ?? 'var(--text-secondary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
+                    {val}
+                  </div>
+                  <div style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
+                    {label}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -290,6 +320,13 @@ export default function InventoryPage() {
                                   {c.issue_note && (
                                     <div style={{ fontSize: '10px', color: 'rgba(220,100,80,0.7)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, marginTop: '4px' }}>
                                       {c.issue_note}
+                                    </div>
+                                  )}
+
+                                  {/* Per-case value */}
+                                  {caseValue(c) > 0 && (
+                                    <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginTop: '4px' }}>
+                                      ${caseValue(c).toLocaleString()} case value
                                     </div>
                                   )}
                                 </div>

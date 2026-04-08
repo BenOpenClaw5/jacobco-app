@@ -36,6 +36,8 @@ export default function CardDetailSheet({
   const [isPackingAll, setIsPackingAll] = useState(false);
   // Warning when moving tools card with incomplete checklist
   const [pendingMove, setPendingMove] = useState<Stage | null | undefined>(undefined);
+  // Serial numbers (Pixel Brick and AX5 only)
+  const [serialNumbers, setSerialNumbers] = useState<{ label: string; serial: string }[]>([]);
   const checklistSaveRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +51,25 @@ export default function CardDetailSheet({
       setChecklistPacked(card.checklist_packed ?? false);
       setPendingMove(undefined);
     }
+  }, [card]);
+
+  // Load serial numbers for Pixel Brick and AX5 cases
+  useEffect(() => {
+    if (!card || card.isCustom || !card.inventoryCaseId || (card.type !== 'Pixel Brick' && card.type !== 'AX5')) {
+      setSerialNumbers([]);
+      return;
+    }
+    const caseId = card.inventoryCaseId;
+    async function loadSerials() {
+      try {
+        const { data } = await supabase.from('inventory_cases').select('serial_numbers').eq('id', caseId).single();
+        const sn = (data?.serial_numbers as { label: string; serial: string }[] | null) ?? [];
+        setSerialNumbers(sn.length > 0 ? sn : [{ label: '', serial: '' }]);
+      } catch {
+        setSerialNumbers([{ label: '', serial: '' }]);
+      }
+    }
+    loadSerials();
   }, [card]);
 
   // ALL hooks must be called before any early return (Rules of Hooks)
@@ -72,6 +93,13 @@ export default function CardDetailSheet({
     const { data, error } = await supabase.from('event_cards').insert(insertData).select('id').single();
     if (error) throw error;
     return data.id;
+  }
+
+  async function saveSerialNumbers(sn: { label: string; serial: string }[]) {
+    if (!card?.inventoryCaseId) return;
+    try {
+      await supabase.from('inventory_cases').update({ serial_numbers: sn }).eq('id', card.inventoryCaseId);
+    } catch (err) { console.error(err); }
   }
 
   async function saveDetails() {
@@ -363,6 +391,76 @@ export default function CardDetailSheet({
                   </button>
                   <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </div>
+
+                {/* Serial Numbers (Pixel Brick and AX5 only) */}
+                {!card.isCustom && (card.type === 'Pixel Brick' || card.type === 'AX5') && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                        Serial Numbers
+                      </label>
+                      {serialNumbers.filter(sn => sn.serial.trim()).length > 0 && (
+                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+                          {serialNumbers.filter(sn => sn.serial.trim()).length} logged
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {serialNumbers.map((sn, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            value={sn.label}
+                            onChange={e => {
+                              const next = serialNumbers.map((s, i) => i === idx ? { ...s, label: e.target.value } : s);
+                              setSerialNumbers(next);
+                              saveSerialNumbers(next);
+                            }}
+                            placeholder={`${card.type} ${idx + 1}`}
+                            style={{ ...inputStyle, fontSize: '12px', padding: '0 0 6px 0', flex: '1' }}
+                            className="outline-none placeholder:opacity-20"
+                          />
+                          <input
+                            value={sn.serial}
+                            onChange={e => {
+                              const next = serialNumbers.map((s, i) => i === idx ? { ...s, serial: e.target.value } : s);
+                              setSerialNumbers(next);
+                              saveSerialNumbers(next);
+                            }}
+                            placeholder="Serial #"
+                            style={{ ...inputStyle, fontSize: '12px', padding: '0 0 6px 0', flex: '1' }}
+                            className="outline-none placeholder:opacity-20"
+                          />
+                          {serialNumbers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = serialNumbers.filter((_, i) => i !== idx);
+                                setSerialNumbers(next);
+                                saveSerialNumbers(next);
+                              }}
+                              className="flex-shrink-0 w-5 h-5 flex items-center justify-center transition-opacity hover:opacity-60"
+                              style={{ color: 'rgba(255,255,255,0.25)' }}
+                            >
+                              <X size={11} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = [...serialNumbers, { label: '', serial: '' }];
+                        setSerialNumbers(next);
+                      }}
+                      className="flex items-center gap-1.5 mt-3 text-[10px] tracking-[0.18em] uppercase font-light transition-opacity hover:opacity-60"
+                      style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}
+                    >
+                      <Plus size={10} />
+                      Add Serial Number
+                    </button>
+                  </div>
+                )}
 
                 {/* Tools Checklist */}
                 {card.type === 'Tools' && (
