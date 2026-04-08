@@ -29,10 +29,11 @@ const MOBILE_TABS: { id: MobileTab; label: string }[] = [
   { id: 'loaded', label: 'Loaded' },
 ];
 
-function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCard[]): DisplayCard[] {
+function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCard[] | null): DisplayCard[] {
+  const cards = eventCards ?? [];
   const result: DisplayCard[] = [];
   for (const ic of inventoryCases) {
-    const ec = eventCards.find(e => e.inventory_case_id === ic.id);
+    const ec = cards.find(e => e.inventory_case_id === ic.id);
     result.push({
       displayId: `inv-${ic.id}`, inventoryCaseId: ic.id, eventCardId: ec?.id,
       type: ic.type, letter: ic.letter, displayName: `${ic.type} ${ic.letter}`,
@@ -47,7 +48,7 @@ function buildDisplayCards(inventoryCases: InventoryCase[], eventCards: EventCar
       has_tools_warning: ec?.has_tools_warning,
     });
   }
-  for (const ec of eventCards.filter(e => e.is_custom)) {
+  for (const ec of cards.filter(e => e.is_custom)) {
     result.push({
       displayId: `custom-${ec.id}`, eventCardId: ec.id,
       type: 'Custom', letter: '', displayName: ec.custom_name ?? 'Custom',
@@ -96,7 +97,11 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       if (eventRes.error) throw eventRes.error;
       setEvent(eventRes.data);
       setTeamMembers(eventRes.data.team_members ?? []);
-      setDisplayCards(buildDisplayCards(casesRes.data as InventoryCase[], cardsRes.data as EventCard[]));
+      if (cardsRes.error) console.error('event_cards query failed:', cardsRes.error);
+      setDisplayCards(buildDisplayCards(
+        (casesRes.data ?? []) as InventoryCase[],
+        cardsRes.data as EventCard[] | null,
+      ));
     } catch (err) { console.error(err); }
     finally { setIsLoading(false); }
   }, [eventId]);

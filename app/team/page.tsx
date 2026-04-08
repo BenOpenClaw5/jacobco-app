@@ -266,20 +266,21 @@ function drawAtmosphericBeam(
 // ─── Per-person canvas ────────────────────────────────────────────────────────
 
 function TeamPinspotCanvas({ index, triggered }: { index: number; triggered: boolean }) {
-  const canvasRef   = useRef<HTMLCanvasElement>(null);
-  const rafRef      = useRef(0);
+  const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const rafRef       = useRef(0);
   const fadeStartRef = useRef(0);
-  const startedRef  = useRef(false);
+  const startedRef   = useRef(false);
 
   useEffect(() => {
     if (!triggered || startedRef.current) return;
     startedRef.current = true;
-    fadeStartRef.current = performance.now();
 
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    fadeStartRef.current = performance.now();
 
     function drawFrame(ts: number) {
       if (!canvas || !ctx) return;
@@ -289,20 +290,26 @@ function TeamPinspotCanvas({ index, triggered }: { index: number; triggered: boo
       const fadeT = Math.min(1, fadeElapsed / FADE_MS);
       const fadeI = 1 - Math.pow(1 - fadeT, 2.2); // ease-out
 
-      const phase = (index * 0.85) % (Math.PI * 2);
-      const breathe = 1 + Math.sin((ts / BREATHE_PERIOD) * 2 * Math.PI + phase) * BREATHE_AMP;
-      const intensity = fadeI * breathe;
+      // During fade-in use JS breathe; after, we hand off to CSS animation
+      const intensity = fadeI;
 
-      // Beam first (behind fixture)
       drawAtmosphericBeam(ctx, FX_X, BEAM_START, BEAM_END, BEAM_LEN, intensity);
-      // Fixture on top
       drawPinspot(ctx, FX_X, FX_Y, Math.PI / 2, intensity);
+
+      if (fadeT >= 1) {
+        // Fade-in complete. Draw the fully-lit static frame, then stop RAF.
+        // CSS @keyframes team-breathe handles the ongoing subtle breathe,
+        // so we never run more than ~2 RAF loops simultaneously on the page.
+        const phaseMs = Math.round(((index * 0.85) / (2 * Math.PI)) * BREATHE_PERIOD) % BREATHE_PERIOD;
+        canvas.style.animation = `team-breathe ${BREATHE_PERIOD}ms ease-in-out infinite`;
+        canvas.style.animationDelay = `-${phaseMs}ms`;
+        return; // Do NOT schedule next frame
+      }
 
       rafRef.current = requestAnimationFrame(drawFrame);
     }
 
     rafRef.current = requestAnimationFrame(drawFrame);
-
     return () => cancelAnimationFrame(rafRef.current);
   }, [triggered, index]);
 
