@@ -15,11 +15,23 @@ function ErrorOverlay() {
     const onUnhandled = (e: PromiseRejectionEvent) => {
       setErrors(prev => [...prev, `UNHANDLED REJECTION: ${String(e.reason)}`]);
     };
+    // Intercept ALL clicks in capture phase — catches any anchor navigation
+    const onCapture = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      const link = el.closest('a');
+      if (link) {
+        const msg = `LINK TAPPED\nhref: ${link.href}\ntext: ${link.textContent?.trim().slice(0, 40)}\ncurrent: ${location.pathname}`;
+        setErrors(prev => [...prev, msg]);
+        // Do NOT preventDefault — still allow navigation so user can test
+      }
+    };
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onUnhandled);
+    document.addEventListener('click', onCapture, true);
     return () => {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onUnhandled);
+      document.removeEventListener('click', onCapture, true);
     };
   }, []);
 

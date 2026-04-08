@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ChevronLeft, MapPin, Calendar, Loader2, ExternalLink, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -110,7 +109,9 @@ export default function EventBoard({ eventId }: EventBoardProps) {
 
   async function handleTeamChange(members: string[]) {
     setTeamMembers(members);
-    await supabase.from('events').update({ team_members: members }).eq('id', eventId);
+    try {
+      await supabase.from('events').update({ team_members: members }).eq('id', eventId);
+    } catch (err) { console.error('team update failed:', err); }
   }
 
   function handleCardUpdated(updates: Partial<DisplayCard> & { eventCardId: string }) {
@@ -177,6 +178,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => router.push(`/return/${eventId}`)}
             className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
             style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
@@ -185,6 +187,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             <span className="hidden sm:inline">Return</span>
           </button>
           <button
+            type="button"
             onClick={() => setIsCustomModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
             style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}
@@ -309,20 +312,10 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       <div className="p-5">
         {/* Mobile */}
         <div className="lg:hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mobileTab}
-              initial={{ opacity: 0, x: 6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -6 }}
-              transition={{ duration: 0.16, ease: 'easeOut' }}
-            >
-              {mobileTab === 'pool'
-                ? <InventoryPool cards={poolCards} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
-                : <StageColumn stage={mobileTab as Stage} cards={stageCards(mobileTab as Stage)} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
-              }
-            </motion.div>
-          </AnimatePresence>
+          {mobileTab === 'pool'
+            ? <InventoryPool cards={poolCards} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
+            : <StageColumn stage={mobileTab as Stage} cards={stageCards(mobileTab as Stage)} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
+          }
         </div>
 
         {/* Desktop */}
