@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${josefin.variable} ${urbanist.variable} h-full`}>
       <head>
         {/* Prevent FOUC: apply saved theme before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('jcc-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('jcc-theme')||localStorage.getItem('jc-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();` }} />
       </head>
       <body className="min-h-full antialiased">
         <ClientShell>{children}</ClientShell>

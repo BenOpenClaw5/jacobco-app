@@ -136,6 +136,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('pool');
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
+  const [quickInvoiceMode, setQuickInvoiceMode] = useState(false);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -182,6 +183,41 @@ export default function EventBoard({ eventId }: EventBoardProps) {
     setDisplayCards(prev => prev.map(card =>
       card.displayId === movedCard.displayId ? { ...card, eventCardId: movedCard.eventCardId, stage: newStage } : card
     ));
+  }
+
+  async function handleQuickInvoice(card: DisplayCard) {
+    // Quick Invoice Mode: pool cards instantly move to invoice
+    if (!card || card.stage) {
+      // Not in pool — open normally
+      setSelectedCard(card);
+      setIsSheetOpen(true);
+      return;
+    }
+    playCardMove();
+    try {
+      let ecId = card.eventCardId;
+      if (!ecId) {
+        const insertData: Record<string, unknown> = { event_id: eventId, is_custom: card.isCustom };
+        if (!card.isCustom) insertData.inventory_case_id = card.inventoryCaseId;
+        else { insertData.custom_name = card.displayName; insertData.custom_color = card.customColor; }
+        const { data, error } = await supabase.from('event_cards').insert(insertData).select('id').single();
+        if (error) throw error;
+        ecId = data.id;
+      }
+      await supabase.from('event_cards').update({ stage: 'invoice' }).eq('id', ecId);
+      setDisplayCards(prev => prev.map(c =>
+        c.displayId === card.displayId ? { ...c, eventCardId: ecId, stage: 'invoice' as Stage } : c
+      ));
+    } catch (err) { console.error(err); }
+  }
+
+  function handlePoolCardClick(card: DisplayCard) {
+    if (quickInvoiceMode && !card.stage) {
+      handleQuickInvoice(card);
+    } else {
+      setSelectedCard(card);
+      setIsSheetOpen(true);
+    }
   }
 
   const stageCards = (stage: Stage) =>
@@ -370,7 +406,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
         {/* Mobile */}
         <div className="lg:hidden">
           {mobileTab === 'pool'
-            ? <InventoryPool cards={poolCards} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
+            ? <InventoryPool cards={poolCards} onCardClick={handlePoolCardClick} />
             : <StageColumn stage={mobileTab as Stage} cards={stageCards(mobileTab as Stage)} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
           }
         </div>
@@ -383,7 +419,37 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             ))}
           </div>
           <div className="pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-            <InventoryPool cards={poolCards} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
+            {/* Quick Invoice Mode toggle */}
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => setQuickInvoiceMode(v => !v)}
+                className="flex items-center gap-2 transition-all"
+                style={{ color: quickInvoiceMode ? 'var(--accent)' : 'var(--text-dim)' }}
+              >
+                <div style={{
+                  width: 14, height: 14,
+                  border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)'}`,
+                  background: quickInvoiceMode ? 'var(--accent)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 150ms ease',
+                }}>
+                  {quickInvoiceMode && (
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                      <path d="M1.5 4L3.2 5.8L6.5 2" stroke="#0a0a0a" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                  )}
+                </div>
+                <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-josefin)', fontWeight: quickInvoiceMode ? 400 : 300 }}>
+                  Quick Invoice Mode
+                </span>
+              </button>
+              {quickInvoiceMode && (
+                <span style={{ fontSize: '9px', color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontStyle: 'italic' }}>
+                  Click pool cards to instantly move to Invoice
+                </span>
+              )}
+            </div>
+            <InventoryPool cards={poolCards} onCardClick={handlePoolCardClick} />
           </div>
         </div>
       </div>

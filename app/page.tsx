@@ -1,29 +1,124 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Calendar, Package, Search, Command } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { ArrowRight, Calendar, Package, CreditCard, Users, Clipboard, LayoutGrid, BookOpen, ExternalLink, Command } from 'lucide-react';
 import GlobalNav from '@/components/GlobalNav';
 import LightingRig from '@/components/LightingRig';
 import { usePalette } from '@/lib/commandPaletteContext';
 
-const TILES = [
-  { href: '/events',    label: 'Events Board',  sub: 'Manage production stages',     icon: null,     delay: 0    },
-  { href: '/calendar',  label: 'Calendar',       sub: 'View by date & shop',          icon: Calendar, delay: 0.06 },
-  { href: '/inventory', label: 'Inventory',      sub: 'Orlando & Dallas case status', icon: Package,  delay: 0.12 },
-  { href: '/lookup',    label: 'Case Lookup',    sub: 'Find any case instantly',      icon: Search,   delay: 0.18 },
+// Globe — SSR disabled (uses Three.js)
+const GlobeSection = dynamic(() => import('@/components/GlobeSection'), { ssr: false, loading: () => (
+  <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', animation: 'pulse-urgent 2s ease-in-out infinite' }} />
+  </div>
+) });
+
+// ─── Feature Grid ─────────────────────────────────────────────────────────────
+
+const FEATURES = [
+  { href: '/events',    label: 'Events Board',  sub: 'Manage cases & track readiness',      icon: LayoutGrid,  external: false },
+  { href: '/booking',   label: 'Booking',        sub: 'Build quotes & create events',        icon: BookOpen,    external: false },
+  { href: '/inventory', label: 'Inventory',      sub: 'Track all cases across shops',        icon: Package,     external: false },
+  { href: '/payroll',   label: 'Payroll',        sub: 'Submit hours & manage pay',           icon: CreditCard,  external: false },
+  { href: '/schedule',  label: 'Team Schedule',  sub: 'See who\'s working when',             icon: Calendar,    external: false },
+  { href: '/rundown',   label: 'The Rundown',    sub: 'Tasks, priorities & to-dos',          icon: Clipboard,   external: false },
+  { href: 'https://meet.google.com/fsx-tfnp-hpb', label: 'Company Call', sub: 'Mon 11am ET · Join meeting', icon: Users, external: true },
+  { href: 'https://drive.google.com/drive/folders/1ooh_YVwvUjxSjVZ77V7v8Z20Ca600y6X', label: 'Receipts', sub: 'Company expense drive', icon: ExternalLink, external: true },
 ];
 
-// Last fixture fully on at: 350ms + 820ms + 200ms = 1370ms
-// Text glow starts as lights settle
+// Company call countdown
+function getCallCountdown(): { label: string; sublabel: string; isLive: boolean } {
+  const now = new Date();
+  const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const day = etNow.getDay();
+  const hour = etNow.getHours();
+  const min = etNow.getMinutes();
+
+  if (day === 1 && hour === 11) {
+    return { label: 'Call is Live', sublabel: 'Join now →', isLive: true };
+  }
+
+  const next = new Date(etNow);
+  const daysUntilMonday = (1 - day + 7) % 7 || (hour >= 12 ? 7 : 0);
+  next.setDate(next.getDate() + daysUntilMonday);
+  next.setHours(11, 0, 0, 0);
+
+  const diffMs = next.getTime() - etNow.getTime();
+  const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffD = Math.floor(diffH / 24);
+  const remH = diffH % 24;
+  const diffM = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (diffD > 0) return { label: `${diffD} days ${remH} hours`, sublabel: 'until next call', isLive: false };
+  if (diffH > 0) return { label: `${diffH} hours ${diffM} minutes`, sublabel: 'until next call', isLive: false };
+  return { label: `${diffM} minutes`, sublabel: 'until next call', isLive: false };
+}
+
+function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: number }) {
+  const Icon = feature.icon;
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+
+  const content = (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 12 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
+      whileHover={{ scale: 1.02 }}
+      style={{
+        border: feature.external ? '1px dashed rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.07)',
+        padding: '18px 16px',
+        background: feature.external ? 'rgba(255,255,255,0.015)' : 'rgba(255,255,255,0.02)',
+        cursor: 'pointer',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        transition: 'border-color 200ms ease, background 200ms ease',
+      }}
+      className="group"
+    >
+      <Icon size={16} strokeWidth={1.5} style={{ color: feature.external ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
+      <div>
+        <div style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {feature.label}
+          {feature.external && <ExternalLink size={9} style={{ opacity: 0.35 }} />}
+        </div>
+        <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+          {feature.sub}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  if (feature.external) {
+    return <a href={feature.href} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>{content}</a>;
+  }
+  return <Link href={feature.href} style={{ display: 'block' }}>{content}</Link>;
+}
+
+// ─── Landing Page ─────────────────────────────────────────────────────────────
+
 const GLOW_DELAY = 1.4;
 
 export default function LandingPage() {
   const { openPalette } = usePalette();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const globeRef = useRef(null);
+  const globeInView = useInView(globeRef, { once: true, margin: '-100px' });
+  const [callInfo, setCallInfo] = useState<ReturnType<typeof getCallCountdown> | null>(null);
 
-  // Background dot grid + slow radial sweep
+  useEffect(() => {
+    setCallInfo(getCallCountdown());
+    const interval = setInterval(() => setCallInfo(getCallCountdown()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Background dot grid + slow radial sweep (always dark on landing hero)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -73,7 +168,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--landing-bg)', position: 'relative', overflow: 'hidden' }}>
-      {/* Page-wide background canvas */}
+      {/* Page-wide background canvas (hero only — dark always) */}
       <canvas
         ref={canvasRef}
         style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
@@ -84,15 +179,13 @@ export default function LandingPage() {
         <GlobalNav />
       </div>
 
-      {/* Hero — lighting rig lives here */}
+      {/* Hero */}
       <main
         className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center"
-        style={{ minHeight: '80vh', position: 'relative', overflow: 'hidden' }}
+        style={{ minHeight: '82vh', position: 'relative', overflow: 'hidden' }}
       >
-        {/* 3D Lighting Rig — renders behind all text */}
         <LightingRig />
 
-        {/* All text content sits above the rig at z-index: 10 */}
         <div className="relative flex flex-col items-center" style={{ zIndex: 10 }}>
           <motion.div
             initial={{ opacity: 0 }}
@@ -112,19 +205,12 @@ export default function LandingPage() {
             Jacob Co Creative
           </motion.div>
 
-          {/* "Production" — kissed by warm light once rig fires */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1, y: 0,
-              textShadow: [
-                '0 0 0px rgba(255,210,120,0), 0 0 0px rgba(255,180,80,0)',
-                '0 0 80px rgba(255,210,120,0.15), 0 0 160px rgba(255,180,80,0.08)',
-              ],
-            }}
+            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(255,210,120,0)', '0 0 80px rgba(255,210,120,0.15), 0 0 160px rgba(255,180,80,0.08)'] }}
             transition={{
-              opacity:    { duration: 0.9, delay: 0.3,        ease: [0.16, 1, 0.3, 1] },
-              y:          { duration: 0.9, delay: 0.3,        ease: [0.16, 1, 0.3, 1] },
+              opacity:    { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
+              y:          { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
               textShadow: { duration: 1.6, delay: GLOW_DELAY, ease: 'easeOut' },
             }}
             style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: '#ffffff', lineHeight: 1.05, marginBottom: 0 }}
@@ -133,19 +219,12 @@ export default function LandingPage() {
             Production
           </motion.h1>
 
-          {/* "Operations" — same glow, fractionally delayed */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1, y: 0,
-              textShadow: [
-                '0 0 0px rgba(255,210,120,0), 0 0 0px rgba(255,180,80,0)',
-                '0 0 80px rgba(255,210,120,0.12), 0 0 160px rgba(255,180,80,0.06)',
-              ],
-            }}
+            animate={{ opacity: 1, y: 0, textShadow: ['0 0 0px rgba(255,210,120,0)', '0 0 80px rgba(255,210,120,0.12), 0 0 160px rgba(255,180,80,0.06)'] }}
             transition={{
-              opacity:    { duration: 0.9, delay: 0.44,            ease: [0.16, 1, 0.3, 1] },
-              y:          { duration: 0.9, delay: 0.44,            ease: [0.16, 1, 0.3, 1] },
+              opacity:    { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
+              y:          { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
               textShadow: { duration: 1.8, delay: GLOW_DELAY + 0.15, ease: 'easeOut' },
             }}
             style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', lineHeight: 1.05, marginBottom: '36px' }}
@@ -170,7 +249,6 @@ export default function LandingPage() {
             Multi-location production management for Orlando &amp; Dallas
           </motion.p>
 
-          {/* Primary CTA */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -195,14 +273,13 @@ export default function LandingPage() {
             </button>
           </motion.div>
 
-          {/* Stats — 2 only */}
+          {/* Stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
             className="flex items-center gap-10 sm:gap-14"
           >
-            {/* Stat: 2 Shops */}
             <div className="text-center">
               <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
                 2
@@ -214,9 +291,8 @@ export default function LandingPage() {
 
             <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
 
-            {/* Stat: ∞ Destinations — 29px so it visually matches "2" at weight 100 */}
             <div className="text-center">
-              <div style={{ fontSize: '29px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, fontVariantNumeric: 'normal' }}>
+              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
                 ∞
               </div>
               <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
@@ -227,57 +303,88 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Quick access tiles */}
-      <section className="relative z-10 px-6 pb-16 max-w-3xl mx-auto w-full">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 1.4 }}
-          style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px', marginBottom: '32px' }}
-        >
+      {/* Feature Grid */}
+      <section className="relative z-10 px-6 py-16" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-3xl mx-auto">
           <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
             Quick Access
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {TILES.map(tile => (
-              <motion.div
-                key={tile.href}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 1.4 + tile.delay }}
-              >
-                <Link
-                  href={tile.href}
-                  className="block group"
-                  style={{
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    padding: '18px 16px',
-                    background: 'rgba(255,255,255,0.02)',
-                    transition: 'border-color 0.2s, background 0.2s',
-                  }}
-                >
-                  <div
-                    style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '4px' }}
-                    className="group-hover:text-white transition-colors"
-                  >
-                    {tile.label}
-                  </div>
-                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
-                    {tile.sub}
-                  </div>
-                </Link>
-              </motion.div>
+            {FEATURES.map((feature, i) => (
+              <FeatureCard key={feature.href} feature={feature} index={i} />
             ))}
           </div>
-        </motion.div>
+        </div>
+      </section>
 
-        {/* Footer links */}
+      {/* Company Call & Receipts */}
+      {callInfo && (
+        <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <a
+              href="https://meet.google.com/fsx-tfnp-hpb"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3 transition-opacity hover:opacity-70"
+              style={{ border: callInfo.isLive ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.1)', background: callInfo.isLive ? 'rgba(34,197,94,0.06)' : 'transparent' }}
+            >
+              {callInfo.isLive && (
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(34,197,94)', flexShrink: 0, animation: 'pulse-urgent 1.5s ease-in-out infinite' }} />
+              )}
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 300, color: callInfo.isLive ? 'rgb(34,197,94)' : '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
+                  {callInfo.isLive ? 'Call is Live' : 'Company Call'}
+                </div>
+                <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+                  {callInfo.isLive ? 'Click to join now' : `${callInfo.label} ${callInfo.sublabel}`}
+                </div>
+              </div>
+              <ExternalLink size={11} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+            </a>
+
+            <a
+              href="https://drive.google.com/drive/folders/1ooh_YVwvUjxSjVZ77V7v8Z20Ca600y6X"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3 transition-opacity hover:opacity-70"
+              style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
+                  Receipts
+                </div>
+                <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+                  Company expense drive
+                </div>
+              </div>
+              <ExternalLink size={11} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+            </a>
+          </div>
+        </section>
+      )}
+
+      {/* Globe Section */}
+      <section className="relative z-10" style={{ background: '#000008', borderTop: '1px solid rgba(255,255,255,0.04)' }} ref={globeRef}>
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 1.7 }}
-          className="flex items-center gap-6"
+          animate={globeInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
+          <div className="text-center pt-14 pb-6 px-6">
+            <h2 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 100, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+              Our Events
+            </h2>
+            <p style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', letterSpacing: '0.06em' }}>
+              Every place we&apos;ve brought the light
+            </p>
+          </div>
+          {globeInView && <GlobeSection />}
+        </motion.div>
+      </section>
+
+      {/* Footer */}
+      <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="max-w-3xl mx-auto flex items-center gap-6">
           <Link href="/incidents" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
             Incident Reports
           </Link>
@@ -287,7 +394,7 @@ export default function LandingPage() {
           <Link href="/admin/payroll" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.1)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
             Admin
           </Link>
-        </motion.div>
+        </div>
       </section>
     </div>
   );

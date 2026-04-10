@@ -14,45 +14,63 @@
 /* ─── Theme CSS Variables ─────────────────────────────────────────────────── */
 
 :root {
-  --bg: #070c0e;
-  --surface: #0c1317;
-  --surface-elevated: #151f28;
-  --card: #101820;
+  /* Legacy names — kept for backward compat */
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface-elevated: #1a1a1a;
+  --card: #161616;
   --border: rgba(255,255,255,0.08);
   --border-subtle: rgba(255,255,255,0.04);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255,255,255,0.55);
-  --text-muted: rgba(255,255,255,0.45);
-  --text-dim: rgba(255,255,255,0.28);
-  --nav-bg: rgba(7,12,14,0.97);
+  --text-secondary: rgba(255,255,255,0.80);
+  --text-muted: rgba(255,255,255,0.60);
+  --text-dim: rgba(255,255,255,0.40);
+  --nav-bg: rgba(10,10,10,0.95);
   --nav-border: rgba(255,255,255,0.05);
-  --accent: #D4B85B;
-  --accent-hover: #e8ca72;
+  --accent: #c49a2a;
+  --accent-hover: #d4aa3a;
   --shadow: 0 2px 16px rgba(0,0,0,0.4);
   --card-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  --landing-bg: #070c0e;
-  --team-bg: #070c0e;
+  --landing-bg: #0a0a0a;
+  --team-bg: #0a0a0a;
   --team-beam-boost: 1;
   --input-border: rgba(255,255,255,0.1);
   --input-text: #ffffff;
   --input-placeholder: rgba(255,255,255,0.2);
-  --modal-bg: rgba(7,12,14,0.92);
+  --modal-bg: rgba(10,10,10,0.92);
+
+  /* V3 variable names */
+  --bg-primary: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-card: #161616;
+  --bg-card-hover: #1e1e1e;
+  --border-default: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.15);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-md: 0 2px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 4px 32px rgba(0,0,0,0.5);
+  --stage-invoice: rgba(255,255,255,0.06);
+  --stage-charging: rgba(251,146,60,0.08);
+  --stage-prepped: rgba(139,92,246,0.08);
+  --stage-loaded: rgba(34,197,94,0.08);
 }
 
 :root[data-theme="light"] {
+  /* Legacy names */
   --bg: #f5f0e8;
   --surface: #ede8df;
-  --surface-elevated: #e5e0d6;
+  --surface-elevated: #e8e2d8;
   --card: #f0ebe2;
   --border: rgba(0,0,0,0.10);
-  --border-subtle: rgba(0,0,0,0.06);
+  --border-subtle: rgba(0,0,0,0.05);
   --text-primary: #1a1610;
-  --text-secondary: #3a3530;
-  --text-muted: #6a6560;
-  --text-dim: #8a8580;
-  --nav-bg: rgba(245,240,232,0.95);
+  --text-secondary: #2e2820;
+  --text-muted: #5a5248;
+  --text-dim: #7a7268;
+  --nav-bg: rgba(245,240,232,0.97);
   --nav-border: rgba(0,0,0,0.08);
-  --accent: #b8860b;
+  --accent: #8b6400;
   --accent-hover: #6b4e00;
   --shadow: 0 2px 16px rgba(0,0,0,0.08);
   --card-shadow: 0 1px 4px rgba(0,0,0,0.06);
@@ -63,6 +81,22 @@
   --input-text: #1a1610;
   --input-placeholder: rgba(0,0,0,0.25);
   --modal-bg: rgba(230,225,215,0.95);
+
+  /* V3 variable names */
+  --bg-primary: #f5f0e8;
+  --bg-surface: #ede8df;
+  --bg-elevated: #e8e2d8;
+  --bg-card: #f0ebe2;
+  --bg-card-hover: #ebe5db;
+  --border-default: rgba(0,0,0,0.10);
+  --border-strong: rgba(0,0,0,0.18);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 32px rgba(0,0,0,0.10);
+  --stage-invoice: rgba(0,0,0,0.03);
+  --stage-charging: rgba(180,100,20,0.06);
+  --stage-prepped: rgba(100,60,180,0.06);
+  --stage-loaded: rgba(20,140,60,0.06);
 }
 
 * {
@@ -72,6 +106,19 @@
 
 html {
   scroll-behavior: smooth;
+  transition: none;
+}
+
+/* Smooth theme transition */
+body, body * {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}
+
+/* But not transforms or opacity — those have their own animations */
+body canvas, body svg, body img {
+  transition: none;
 }
 
 body {
@@ -82,7 +129,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   letter-spacing: 0.01em;
-  transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, .display {
@@ -95,11 +141,17 @@ h1, h2, h3, h4, .display {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+
 /* Date input */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.6);
   opacity: 0.4;
   cursor: pointer;
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -118,14 +170,14 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 }
 .pulse-urgent { animation: pulse-urgent 1.8s ease-in-out infinite; }
 
-/* Team page breathe — controlled by JS, this is just the class hook */
+/* Team page breathe */
 @keyframes breathe-glow {
   0%, 100% { opacity: 0.10; }
   50% { opacity: 0.18; }
 }
 .breathe-glow { animation: breathe-glow 4s ease-in-out infinite; }
 
-/* Team page canvas breathe — CSS takes over after RAF fade-in completes */
+/* Team page canvas breathe */
 @keyframes team-breathe {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.9; }
@@ -161,6 +213,66 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
   --text-dim: rgba(255,255,255,0.28) !important;
   --nav-bg: rgba(7,12,14,0.97) !important;
   --accent: #D4B85B !important;
+  --bg-primary: #070c0e !important;
+  --bg-surface: #0c1317 !important;
+  --bg-card: #101820 !important;
   color: #ffffff;
   background: #070c0e;
+}
+
+/* Payroll admin pages — always dark regardless of theme */
+.payroll-admin-dark {
+  --bg: #070c0e;
+  --surface: #0c1317;
+  --card: #101820;
+  --border: rgba(255,255,255,0.08);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-muted: rgba(255,255,255,0.45);
+  --text-dim: rgba(255,255,255,0.28);
+  --modal-bg: rgba(7,12,14,0.92);
+  background: #070c0e;
+  color: #ffffff;
+}
+
+/* Splash screen */
+@keyframes splash-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes splash-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Globe section */
+.globe-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Page transition */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Stats counter */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Stagger animation */
+.stagger-child {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.stagger-child.visible {
+  opacity: 1;
+  transform: translateY(0);
 }

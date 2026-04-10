@@ -58,8 +58,8 @@ const SELECTED_BTN_STYLES: Record<string, React.CSSProperties> = {
 
 const UNSELECTED_BTN_STYLE: React.CSSProperties = {
   background: 'transparent',
-  border: '1px solid rgba(255,255,255,0.12)',
-  color: 'rgba(255,255,255,0.28)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  color: 'rgba(255,255,255,0.30)',
   boxShadow: 'none',
 };
 
@@ -212,10 +212,14 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
   async function handleStatusChange(newStatus: string) {
     if (!submission) return;
-    // Toggle: clicking the current status resets to 'submitted'
-    const finalStatus = submission.status === newStatus ? 'submitted' : newStatus;
 
-    // If marking as reviewed, show note popup first
+    // Toggle logic:
+    // - Clicking current status → back to 'submitted' (pending)
+    // - Clicking different status → set that status (with review note modal if reviewed)
+    const isCurrentlySelected = submission.status === newStatus;
+    const finalStatus = isCurrentlySelected ? 'submitted' : newStatus;
+
+    // If moving TO reviewed (not toggling off), show the review note modal
     if (finalStatus === 'reviewed') {
       setShowReviewNote(true);
       return;

@@ -24,15 +24,10 @@ const TEAM = [
 
 const CW = 600;   // canvas coordinate width
 const CH = 240;   // canvas coordinate height
-const FX_X = 300; // fixture center X (canvas coords)
-const FX_Y = 52;  // fixture center Y (canvas coords)
+const FX_X = 300; // vanishing point X (canvas coords)
 
-// New fixture geometry — vertical orientation, downward-facing
-// Base top at FX_Y - 26, face (lens) at FX_Y + ~8
-const LENS_Y  = FX_Y + 8; // lens sits ~8px below fixture center
-
-// Beam
-const BEAM_START = LENS_Y;
+// Beam — originates from a sharp vanishing point at top
+const BEAM_START = 4;    // very close to top edge — the sharp point
 const BEAM_END   = 190;  // terminates at name text center
 const BEAM_LEN   = BEAM_END - BEAM_START;
 
@@ -41,198 +36,19 @@ const BREATHE_PERIOD = 4500;
 const BREATHE_AMP    = 0.10;
 const FADE_MS        = 500;
 
-// ─── Rounded rect helper ──────────────────────────────────────────────────────
+// ─── Sharp-point beam origin glow (replaces fixture) ─────────────────────────
 
-function rRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const cr = Math.min(Math.abs(r), Math.abs(w) / 2, Math.abs(h) / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + cr, y);
-  ctx.lineTo(x + w - cr, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + cr);
-  ctx.lineTo(x + w, y + h - cr);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - cr, y + h);
-  ctx.lineTo(x + cr, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - cr);
-  ctx.lineTo(x, y + cr);
-  ctx.quadraticCurveTo(x, y, x + cr, y);
-  ctx.closePath();
-}
-
-// ─── Pinspot fixture (vertical, pointing down) ────────────────────────────────
-
-function drawPinspot(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  _angle: number,   // kept for API compatibility, ignored — fixture always points down
-  intensity: number,
-) {
+function drawSourceGlow(ctx: CanvasRenderingContext2D, cx: number, intensity: number) {
   if (intensity < 0.005) return;
-
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, intensity);
-  ctx.translate(cx, cy);
-
-  // === BASE — 3D rectangular box ===
-  const bW = 22, bH = 10;
-  const bX = -bW / 2, bY = -26;
-
-  // Front face
-  const frontGrad = ctx.createLinearGradient(bX, bY, bX, bY + bH);
-  frontGrad.addColorStop(0, '#d0d0d0');
-  frontGrad.addColorStop(0.5, '#b8b8b8');
-  frontGrad.addColorStop(1, '#989898');
-  ctx.fillStyle = frontGrad;
-  rRect(ctx, bX, bY, bW, bH, 2);
+  // Tiny bright core at the vanishing point
+  const coreGrad = ctx.createRadialGradient(cx, BEAM_START, 0, cx, BEAM_START, 4);
+  coreGrad.addColorStop(0, `rgba(255,248,220,${0.9 * intensity})`);
+  coreGrad.addColorStop(0.5, `rgba(255,220,140,${0.4 * intensity})`);
+  coreGrad.addColorStop(1, 'rgba(255,200,100,0)');
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(cx, BEAM_START, 4, 0, Math.PI * 2);
   ctx.fill();
-
-  // Top face — lighter, suggests 3D depth
-  ctx.fillStyle = '#e8e8e8';
-  ctx.beginPath();
-  ctx.moveTo(bX, bY);
-  ctx.lineTo(bX + bW, bY);
-  ctx.lineTo(bX + bW + 4, bY - 4);
-  ctx.lineTo(bX + 4, bY - 4);
-  ctx.closePath();
-  ctx.fill();
-
-  // Right side face — darkest
-  ctx.fillStyle = '#787878';
-  ctx.beginPath();
-  ctx.moveTo(bX + bW, bY);
-  ctx.lineTo(bX + bW + 4, bY - 4);
-  ctx.lineTo(bX + bW + 4, bY - 4 + bH);
-  ctx.lineTo(bX + bW, bY + bH);
-  ctx.closePath();
-  ctx.fill();
-
-  // Base rim highlight
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  ctx.lineWidth = 0.75;
-  ctx.beginPath();
-  ctx.moveTo(bX + 2, bY + 1);
-  ctx.lineTo(bX + bW - 2, bY + 1);
-  ctx.stroke();
-
-  // Panel detail line
-  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-  ctx.lineWidth = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(bX + bW * 0.5, bY + 2);
-  ctx.lineTo(bX + bW * 0.5, bY + bH - 2);
-  ctx.stroke();
-
-  // Base border
-  ctx.strokeStyle = 'rgba(60,60,60,0.4)';
-  ctx.lineWidth = 0.75;
-  rRect(ctx, bX, bY, bW, bH, 2);
-  ctx.stroke();
-
-  // === NECK ===
-  const neckW = 6, neckH = 14;
-  const neckX = -neckW / 2;
-  const neckY = bY + bH;
-
-  const neckGrad = ctx.createLinearGradient(neckX, 0, neckX + neckW, 0);
-  neckGrad.addColorStop(0, '#c0c0c0');
-  neckGrad.addColorStop(0.4, '#a8a8a8');
-  neckGrad.addColorStop(1, '#808080');
-  ctx.fillStyle = neckGrad;
-  rRect(ctx, neckX, neckY, neckW, neckH, 1.5);
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(neckX + 1, neckY + 2);
-  ctx.lineTo(neckX + 1, neckY + neckH - 2);
-  ctx.stroke();
-
-  // === HEAD ===
-  const headR = 11;
-  const headCY = neckY + neckH + headR * 0.7;
-
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 3;
-
-  const headGrad = ctx.createRadialGradient(
-    -headR * 0.3, headCY - headR * 0.3, 0,
-    0, headCY, headR,
-  );
-  headGrad.addColorStop(0, '#e8e8e8');
-  headGrad.addColorStop(0.4, '#c0c0c0');
-  headGrad.addColorStop(0.8, '#909090');
-  headGrad.addColorStop(1, '#606060');
-  ctx.fillStyle = headGrad;
-  ctx.beginPath();
-  ctx.arc(0, headCY, headR, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-
-  ctx.strokeStyle = 'rgba(50,50,50,0.5)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(0, headCY, headR, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, headCY, headR - 2, Math.PI * 1.1, Math.PI * 1.65);
-  ctx.stroke();
-
-  // Face bezel
-  const faceY = headCY + headR * 0.2;
-  ctx.fillStyle = '#3a3a3a';
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 0.78, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#222';
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 0.62, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Reflector cup
-  const reflGrad = ctx.createRadialGradient(0, faceY, 0, 0, faceY, headR * 0.55);
-  reflGrad.addColorStop(0, '#404040');
-  reflGrad.addColorStop(1, '#1a1a1a');
-  ctx.fillStyle = reflGrad;
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 0.55, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Lens aperture glow
-  const lensGrad = ctx.createRadialGradient(0, faceY, 0, 0, faceY, headR * 0.45);
-  lensGrad.addColorStop(0, 'rgba(255,252,220,1.0)');
-  lensGrad.addColorStop(0.2, 'rgba(255,240,180,0.95)');
-  lensGrad.addColorStop(0.5, 'rgba(255,210,120,0.7)');
-  lensGrad.addColorStop(0.8, 'rgba(255,180,70,0.3)');
-  lensGrad.addColorStop(1, 'rgba(255,150,40,0)');
-  ctx.fillStyle = lensGrad;
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 0.45, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Bright center flare
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 0.10, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Outer lens halo
-  const haloGrad = ctx.createRadialGradient(0, faceY, headR * 0.4, 0, faceY, headR * 1.2);
-  haloGrad.addColorStop(0, `rgba(255,220,120,${0.15 * intensity})`);
-  haloGrad.addColorStop(1, 'rgba(255,180,60,0)');
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = haloGrad;
-  ctx.beginPath();
-  ctx.arc(0, faceY, headR * 1.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
 }
 
 // ─── Atmospheric beam + haze pool ─────────────────────────────────────────────
@@ -354,7 +170,7 @@ function TeamPinspotCanvas({ index, triggered }: { index: number; triggered: boo
       const intensity = fadeI;
 
       drawAtmosphericBeam(ctx, FX_X, BEAM_START, BEAM_END, BEAM_LEN, intensity);
-      drawPinspot(ctx, FX_X, FX_Y, Math.PI / 2, intensity);
+      drawSourceGlow(ctx, FX_X, intensity);
 
       if (fadeT >= 1) {
         // Fade-in complete. Draw the fully-lit static frame, then stop RAF.

@@ -32,12 +32,15 @@ export default function CardDetailSheet({
   // Tools checklist
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
   const [checklistPacked, setChecklistPacked] = useState(false);
-  const [isSavingChecklist, setIsSavingChecklist] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isSavingChecklist, _setIsSavingChecklist] = useState(false);
   const [isPackingAll, setIsPackingAll] = useState(false);
   // Warning when moving tools card with incomplete checklist
   const [pendingMove, setPendingMove] = useState<Stage | null | undefined>(undefined);
   // Serial numbers (Pixel Brick and AX5 only)
   const [serialNumbers, setSerialNumbers] = useState<{ label: string; serial: string }[]>([]);
+  // Dual beam cover color
+  const [dualBeamCoverColor, setDualBeamCoverColor] = useState('');
   const checklistSaveRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,6 +53,9 @@ export default function CardDetailSheet({
       setChecklistState(card.checklist_state ?? {});
       setChecklistPacked(card.checklist_packed ?? false);
       setPendingMove(undefined);
+      // Load dual beam cover color from card's dual_beam_cover_color field if present
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setDualBeamCoverColor((card as any).dual_beam_cover_color ?? '');
     }
   }, [card]);
 
@@ -111,6 +117,14 @@ export default function CardDetailSheet({
       onCardUpdated({ eventCardId: ecId, displayId: card!.displayId, notes, approved_by: approvedBy, prepped_by: preppedBy });
     } catch (err) { console.error(err); }
     finally { setIsSaving(false); }
+  }
+
+  async function saveDualBeamColor(color: string) {
+    if (!card || card.type !== 'Dual Beam') return;
+    try {
+      const ecId = await ensureEventCard();
+      await supabase.from('event_cards').update({ dual_beam_cover_color: color || null }).eq('id', ecId);
+    } catch (err) { console.error(err); }
   }
 
   function scheduleAutoSave() {
@@ -302,9 +316,70 @@ export default function CardDetailSheet({
                 </button>
               </div>
 
-              <div className="h-px mx-6" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              {/* ── MOVE TO — top of content, full-width prominent ── */}
+              <div className="px-6 pt-4 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+                  Move to
+                </label>
 
-              <div className="px-6 pt-6 space-y-6 pb-10">
+                {/* Tools warning inline */}
+                {pendingMove !== undefined && (
+                  <div style={{ background: 'rgba(220,140,30,0.08)', border: '1px solid rgba(220,140,30,0.2)', padding: '14px', marginBottom: '10px' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle size={12} style={{ color: 'rgba(220,160,60,0.9)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}>
+                        Checklist Incomplete
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-urbanist)', marginBottom: '12px' }}>
+                      Tools checklist is not fully packed. Move anyway?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPendingMove(undefined)}
+                        className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-60"
+                        style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+                      >
+                        Go Back
+                      </button>
+                      <button
+                        onClick={() => executeMove(pendingMove, true)}
+                        disabled={isMoving}
+                        className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-70"
+                        style={{ border: '1px solid rgba(220,140,30,0.4)', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}
+                      >
+                        {isMoving && <Loader2 size={9} className="animate-spin" />}
+                        Continue Anyway
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stage buttons — full-width, easy to tap */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {moveTargets.map(target => (
+                    <button
+                      key={target.label}
+                      onClick={() => handleMove(target.stage)}
+                      disabled={isMoving || pendingMove !== undefined}
+                      className="flex items-center justify-center gap-1.5 py-3 text-[9px] tracking-[0.15em] uppercase font-light transition-all"
+                      style={{
+                        border: `1px solid ${target.accent}`,
+                        color: target.accent,
+                        fontFamily: 'var(--font-josefin)',
+                        background: `${target.accent}08`,
+                        opacity: pendingMove !== undefined ? 0.3 : 1,
+                      }}
+                    >
+                      {isMoving
+                        ? <Loader2 size={9} className="animate-spin" />
+                        : target.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="px-6 pt-5 space-y-6 pb-10">
                 {/* Notes */}
                 <div>
                   <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
@@ -347,6 +422,23 @@ export default function CardDetailSheet({
                   <div className="flex items-center gap-2">
                     <Loader2 size={9} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
                     <span className="text-[9px] tracking-widest uppercase font-light" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Saving</span>
+                  </div>
+                )}
+
+                {/* Dual Beam Cover Color (only for Dual Beam cases) */}
+                {!card.isCustom && card.type === 'Dual Beam' && (
+                  <div>
+                    <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                      Dual Beam Cover Color
+                    </label>
+                    <input
+                      value={dualBeamCoverColor}
+                      onChange={e => setDualBeamCoverColor(e.target.value)}
+                      onBlur={e => saveDualBeamColor(e.target.value)}
+                      placeholder="e.g. Navy blue to match venue drapes"
+                      className="w-full text-sm outline-none placeholder:opacity-20"
+                      style={{ ...inputStyle, padding: '0 0 8px 0', fontSize: '13px' }}
+                    />
                   </div>
                 )}
 
@@ -472,72 +564,6 @@ export default function CardDetailSheet({
                     isPackingAll={isPackingAll}
                   />
                 )}
-
-                {/* Move to */}
-                <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-4" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
-                    Move to
-                  </label>
-
-                  {/* Tools warning inline */}
-                  {pendingMove !== undefined && (
-                    <div style={{ background: 'rgba(220,140,30,0.08)', border: '1px solid rgba(220,140,30,0.2)', padding: '16px', marginBottom: '12px' }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle size={12} style={{ color: 'rgba(220,160,60,0.9)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}>
-                          Checklist Incomplete
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-urbanist)', marginBottom: '14px' }}>
-                        Tools checklist is not fully packed. Move anyway?
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setPendingMove(undefined)}
-                          className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-60"
-                          style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
-                        >
-                          Go Back
-                        </button>
-                        <button
-                          onClick={() => executeMove(pendingMove, true)}
-                          disabled={isMoving}
-                          className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light flex items-center justify-center gap-1.5 transition-opacity hover:opacity-70"
-                          style={{ border: '1px solid rgba(220,140,30,0.4)', color: 'rgba(220,160,60,0.9)', fontFamily: 'var(--font-josefin)' }}
-                        >
-                          {isMoving && <Loader2 size={9} className="animate-spin" />}
-                          Continue Anyway
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    {moveTargets.map(target => (
-                      <button
-                        key={target.label}
-                        onClick={() => handleMove(target.stage)}
-                        disabled={isMoving || pendingMove !== undefined}
-                        className="flex items-center justify-between w-full py-3 px-0 text-left transition-opacity hover:opacity-60"
-                        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: pendingMove !== undefined ? 0.3 : 1 }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-px" style={{ background: target.accent }} />
-                          <span
-                            className="text-[10px] tracking-[0.2em] uppercase font-light"
-                            style={{ color: target.accent, fontFamily: 'var(--font-josefin)' }}
-                          >
-                            {target.label}
-                          </span>
-                        </div>
-                        {isMoving
-                          ? <Loader2 size={11} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
-                          : <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.15)' }} />
-                        }
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
