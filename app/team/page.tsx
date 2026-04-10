@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import GlobalNav from '@/components/GlobalNav';
+
+const pageAnim = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } };
 
 // ─── Team roster ──────────────────────────────────────────────────────────────
 
@@ -301,7 +304,7 @@ function TeamMember({ name, titles, index }: { name: string; titles: string[]; i
 
 export default function TeamPage() {
   return (
-    <div style={{ background: 'var(--team-bg)', minHeight: '100vh' }}>
+    <motion.div {...pageAnim} style={{ background: 'var(--team-bg)', minHeight: '100vh' }}>
       {/* Grain overlay */}
       <div
         style={{
@@ -368,6 +371,6 @@ export default function TeamPage() {
 
         <div style={{ height: '80px' }} />
       </div>
-    </div>
+    </motion.div>
   );
 }

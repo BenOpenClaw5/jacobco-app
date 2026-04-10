@@ -405,6 +405,53 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       <div className="p-5">
         {/* Mobile */}
         <div className="lg:hidden">
+          {mobileTab === 'pool' && (
+            /* Quick Invoice Mode toggle — mobile */
+            <button
+              onClick={() => setQuickInvoiceMode(v => !v)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                width: '100%',
+                minHeight: '48px',
+                padding: '12px 0',
+                marginBottom: '12px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: 0,
+              }}
+            >
+              <div style={{
+                width: 18, height: 18, flexShrink: 0,
+                border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)'}`,
+                background: quickInvoiceMode ? 'var(--accent)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 150ms ease',
+              }}>
+                {quickInvoiceMode && (
+                  <svg width="10" height="10" viewBox="0 0 8 8" fill="none">
+                    <path d="M1.5 4L3.2 5.8L6.5 2" stroke="#0a0a0a" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </div>
+              <span style={{
+                fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                fontFamily: 'var(--font-josefin)',
+                color: quickInvoiceMode ? 'var(--accent)' : 'var(--text-dim)',
+                fontWeight: quickInvoiceMode ? 400 : 300,
+              }}>
+                Quick Invoice Mode
+              </span>
+              {quickInvoiceMode && (
+                <span style={{ fontSize: '9px', color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontStyle: 'italic', marginLeft: 'auto' }}>
+                  Tap to invoice
+                </span>
+              )}
+            </button>
+          )}
           {mobileTab === 'pool'
             ? <InventoryPool cards={poolCards} onCardClick={handlePoolCardClick} />
             : <StageColumn stage={mobileTab as Stage} cards={stageCards(mobileTab as Stage)} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />

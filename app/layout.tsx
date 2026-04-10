@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Josefin_Sans, Urbanist } from 'next/font/google';
 import './globals.css';
 import ClientShell from '@/components/ClientShell';
+import { SplashScreen } from '@/components/SplashScreen';
 
 const josefin = Josefin_Sans({
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('jcc-theme')||localStorage.getItem('jc-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();` }} />
       </head>
       <body className="min-h-full antialiased">
+        <SplashScreen />
         <ClientShell>{children}</ClientShell>
       </body>
     </html>

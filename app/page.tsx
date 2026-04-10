@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ArrowRight, Calendar, Package, CreditCard, Users, Clipboard, LayoutGrid, BookOpen, ExternalLink, Command } from 'lucide-react';
+import { ArrowRight, Calendar, Package, CreditCard, Clipboard, LayoutGrid, BookOpen, ExternalLink, Command } from 'lucide-react';
 import GlobalNav from '@/components/GlobalNav';
 import LightingRig from '@/components/LightingRig';
 import { usePalette } from '@/lib/commandPaletteContext';
@@ -19,14 +19,12 @@ const GlobeSection = dynamic(() => import('@/components/GlobeSection'), { ssr: f
 // ─── Feature Grid ─────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { href: '/events',    label: 'Events Board',  sub: 'Manage cases & track readiness',      icon: LayoutGrid,  external: false },
-  { href: '/booking',   label: 'Booking',        sub: 'Build quotes & create events',        icon: BookOpen,    external: false },
-  { href: '/inventory', label: 'Inventory',      sub: 'Track all cases across shops',        icon: Package,     external: false },
-  { href: '/payroll',   label: 'Payroll',        sub: 'Submit hours & manage pay',           icon: CreditCard,  external: false },
-  { href: '/schedule',  label: 'Team Schedule',  sub: 'See who\'s working when',             icon: Calendar,    external: false },
-  { href: '/rundown',   label: 'The Rundown',    sub: 'Tasks, priorities & to-dos',          icon: Clipboard,   external: false },
-  { href: 'https://meet.google.com/fsx-tfnp-hpb', label: 'Company Call', sub: 'Mon 11am ET · Join meeting', icon: Users, external: true },
-  { href: 'https://drive.google.com/drive/folders/1ooh_YVwvUjxSjVZ77V7v8Z20Ca600y6X', label: 'Receipts', sub: 'Company expense drive', icon: ExternalLink, external: true },
+  { href: '/events',    label: 'Events Board',  sub: 'Manage cases & track readiness', icon: LayoutGrid, external: false },
+  { href: '/booking',   label: 'Booking',       sub: 'Build quotes & create events',   icon: BookOpen,   external: false },
+  { href: '/inventory', label: 'Inventory',     sub: 'Track all cases across shops',   icon: Package,    external: false },
+  { href: '/payroll',   label: 'Payroll',       sub: 'Submit hours & manage pay',      icon: CreditCard, external: false },
+  { href: '/schedule',  label: 'Team Schedule', sub: 'See who\'s working when',        icon: Calendar,   external: false },
+  { href: '/rundown',   label: 'The Rundown',   sub: 'Tasks, priorities & to-dos',     icon: Clipboard,  external: false },
 ];
 
 // Company call countdown
@@ -59,20 +57,18 @@ function getCallCountdown(): { label: string; sublabel: string; isLive: boolean 
 
 function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: number }) {
   const Icon = feature.icon;
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
 
   const content = (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 12 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.06 }}
       whileHover={{ scale: 1.02 }}
       style={{
-        border: feature.external ? '1px dashed rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.07)',
+        border: '1px solid rgba(255,255,255,0.07)',
         padding: '18px 16px',
-        background: feature.external ? 'rgba(255,255,255,0.015)' : 'rgba(255,255,255,0.02)',
+        background: 'rgba(255,255,255,0.02)',
         cursor: 'pointer',
         height: '100%',
         display: 'flex',
@@ -80,13 +76,11 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: n
         gap: '10px',
         transition: 'border-color 200ms ease, background 200ms ease',
       }}
-      className="group"
     >
-      <Icon size={16} strokeWidth={1.5} style={{ color: feature.external ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
+      <Icon size={16} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
       <div>
-        <div style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '4px' }}>
           {feature.label}
-          {feature.external && <ExternalLink size={9} style={{ opacity: 0.35 }} />}
         </div>
         <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
           {feature.sub}
@@ -95,9 +89,6 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: n
     </motion.div>
   );
 
-  if (feature.external) {
-    return <a href={feature.href} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>{content}</a>;
-  }
   return <Link href={feature.href} style={{ display: 'block' }}>{content}</Link>;
 }
 
@@ -108,8 +99,6 @@ const GLOW_DELAY = 1.4;
 export default function LandingPage() {
   const { openPalette } = usePalette();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const globeRef = useRef(null);
-  const globeInView = useInView(globeRef, { once: true, margin: '-100px' });
   const [callInfo, setCallInfo] = useState<ReturnType<typeof getCallCountdown> | null>(null);
 
   useEffect(() => {
@@ -309,7 +298,7 @@ export default function LandingPage() {
           <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
             Quick Access
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {FEATURES.map((feature, i) => (
               <FeatureCard key={feature.href} feature={feature} index={i} />
             ))}
@@ -320,6 +309,12 @@ export default function LandingPage() {
       {/* Company Call & Receipts */}
       {callInfo && (
         <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
           <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <a
               href="https://meet.google.com/fsx-tfnp-hpb"
@@ -360,15 +355,17 @@ export default function LandingPage() {
               <ExternalLink size={11} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
             </a>
           </div>
+          </motion.div>
         </section>
       )}
 
       {/* Globe Section */}
-      <section className="relative z-10" style={{ background: '#000008', borderTop: '1px solid rgba(255,255,255,0.04)' }} ref={globeRef}>
+      <section className="relative z-10" style={{ background: '#000008', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
         <motion.div
           initial={{ opacity: 0 }}
-          animate={globeInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7 }}
         >
           <div className="text-center pt-14 pb-6 px-6">
             <h2 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 100, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
@@ -378,7 +375,7 @@ export default function LandingPage() {
               Every place we&apos;ve brought the light
             </p>
           </div>
-          {globeInView && <GlobeSection />}
+          <GlobeSection />
         </motion.div>
       </section>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+const pageAnim = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } };
 import { Loader2, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -56,7 +57,7 @@ export default function IncidentsPage() {
   const unresolvedCount = incidents.filter(i => !i.resolved).length;
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <motion.div {...pageAnim} className="min-h-screen" style={{ background: '#070c0e' }}>
       <GlobalNav />
 
       <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -175,6 +176,6 @@ export default function IncidentsPage() {
           </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import GlobalNav from '@/components/GlobalNav';
+const pageAnim = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } };
 import { supabase } from '@/lib/supabase';
 import { Plus, X, Check, MessageSquare, ChevronDown, ChevronUp, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -544,7 +546,7 @@ export default function RundownPage() {
   for (const t of filtered) byPriority[t.priority].push(t);
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <motion.div {...pageAnim} style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <GlobalNav />
 
       {/* Header */}
@@ -617,6 +619,6 @@ export default function RundownPage() {
       </main>
 
       {showCreate && <CreateTaskModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />}
-    </div>
+    </motion.div>
   );
 }
