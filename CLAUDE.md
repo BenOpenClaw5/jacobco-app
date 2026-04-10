@@ -7,9 +7,10 @@
 Internal operations app for **Jacob Co Creative**, a lighting/AV production company in Orlando FL.
 Features: event prep board, inventory management, war room display, client booking, payroll submissions, team page, calendar, schedule.
 
-**Production URL:** https://jacobco-app-v2.vercel.app
+**Production URL (V3):** https://jacobco-app-v3.vercel.app
+**Legacy V2 URL:** https://jacobco-app-v2.vercel.app
 **GitHub:** BenOpenClaw5/jacobco-app (branch: `v2-redesign`)
-**Deploy:** `npx vercel --prod` (always use `--prod` flag or it deploys to preview only)
+**Deploy:** `npx vercel --prod` (always use `--prod` flag or it deploys to preview only — `.vercel/project.json` now points to v3 project)
 
 ---
 
