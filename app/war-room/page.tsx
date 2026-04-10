@@ -232,6 +232,22 @@ interface WarEventData {
   displayCards: DisplayCard[];
 }
 
+function formatTransportTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function isToday(iso: string | null | undefined, now: Date): boolean {
+  if (!iso) return false;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return false;
+  return d.getFullYear() === now.getFullYear()
+    && d.getMonth() === now.getMonth()
+    && d.getDate() === now.getDate();
+}
+
 function WarEventCard({ data, now }: { data: WarEventData; now: Date }) {
   const { event, displayCards } = data;
   const score = calcReadiness(displayCards);
@@ -241,6 +257,11 @@ function WarEventCard({ data, now }: { data: WarEventData; now: Date }) {
   const caseCount = displayCards.filter(c => c.stage).length;
 
   const isCritical = cd?.urgency === 'critical';
+
+  // Transport alerts — show when dropoff/pickup is today
+  const e = event as Event & { dropoff_time?: string; dropoff_driver?: string; pickup_time?: string; pickup_driver?: string };
+  const dropoffToday = isToday(e.dropoff_time, now);
+  const pickupToday  = isToday(e.pickup_time, now);
 
   const formatDateRange = () => {
     if (!event.event_start_date) return null;
@@ -285,6 +306,46 @@ function WarEventCard({ data, now }: { data: WarEventData; now: Date }) {
 
         {/* Readiness */}
         <ReadinessBar score={score} />
+
+        {/* Transport alerts */}
+        {(dropoffToday || pickupToday) && (
+          <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+            {dropoffToday && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(255,185,80,0.08)', border: '1px solid rgba(255,185,80,0.25)',
+                padding: '8px 14px',
+              }}>
+                <div className="pulse-urgent" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,185,80,0.9)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,185,80,0.6)', fontFamily: 'var(--font-josefin)', marginBottom: '2px' }}>
+                    Wheels Up · Drop-off
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 200, color: 'rgba(255,210,120,0.95)', fontFamily: 'var(--font-josefin)' }}>
+                    {formatTransportTime(e.dropoff_time)}{e.dropoff_driver ? ` · ${e.dropoff_driver}` : ''}
+                  </div>
+                </div>
+              </div>
+            )}
+            {pickupToday && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(100,180,255,0.06)', border: '1px solid rgba(100,180,255,0.2)',
+                padding: '8px 14px',
+              }}>
+                <div className="pulse-urgent" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(100,180,255,0.9)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(100,180,255,0.6)', fontFamily: 'var(--font-josefin)', marginBottom: '2px' }}>
+                    Pick-up Today
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 200, color: 'rgba(160,210,255,0.95)', fontFamily: 'var(--font-josefin)' }}>
+                    {formatTransportTime(e.pickup_time)}{e.pickup_driver ? ` · ${e.pickup_driver}` : ''}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Stats row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>

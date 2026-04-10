@@ -22,12 +22,18 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
   const [eventEndDate, setEventEndDate] = useState('');
   const [notes, setNotes] = useState('');
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
+  const [dropoffTime, setDropoffTime] = useState('');
+  const [dropoffDriver, setDropoffDriver] = useState('');
+  const [pickupTime, setPickupTime] = useState('');
+  const [pickupDriver, setPickupDriver] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   function reset() {
     setName(''); setShop('Orlando'); setLocation(''); setLoadByDate('');
-    setEventStartDate(''); setEventEndDate(''); setNotes(''); setTeamMembers([]); setError('');
+    setEventStartDate(''); setEventEndDate(''); setNotes(''); setTeamMembers([]);
+    setDropoffTime(''); setDropoffDriver(''); setPickupTime(''); setPickupDriver('');
+    setError('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -44,6 +50,10 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
         event_end_date: eventEndDate || null,
         notes: notes.trim() || null,
         team_members: teamMembers,
+        dropoff_time: dropoffTime || null,
+        dropoff_driver: dropoffDriver.trim() || null,
+        pickup_time: pickupTime || null,
+        pickup_driver: pickupDriver.trim() || null,
         last_updated_by: 'Guest User',
         last_updated_at: new Date().toISOString(),
       }).select().single();
@@ -169,6 +179,44 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                     Load by Date
                   </label>
                   <input type="date" value={loadByDate} onChange={e => setLoadByDate(e.target.value)} style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                </div>
+
+                {/* Transport — Drop-off */}
+                <div>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    Drop-off
+                  </label>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Time</div>
+                      <input type="datetime-local" value={dropoffTime} onChange={e => setDropoffTime(e.target.value)}
+                        style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                    </div>
+                    <div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
+                      <input value={dropoffDriver} onChange={e => setDropoffDriver(e.target.value)}
+                        placeholder="Driver name" style={fieldStyle} className="outline-none placeholder:opacity-20" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transport — Pick-up */}
+                <div>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    Pick-up
+                  </label>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Time</div>
+                      <input type="datetime-local" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
+                        style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                    </div>
+                    <div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
+                      <input value={pickupDriver} onChange={e => setPickupDriver(e.target.value)}
+                        placeholder="Driver name" style={fieldStyle} className="outline-none placeholder:opacity-20" />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

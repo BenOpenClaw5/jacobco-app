@@ -13,11 +13,10 @@ import GlobalNav from '@/components/GlobalNav';
 // ─── Pricing ──────────────────────────────────────────────────────────────────
 
 const LIGHT_PRICES: Record<string, number> = {
-  'Dacore': 8, 'Pinspot': 12, 'Dual Beam': 10, 'Gobo': 15,
-  'Super Spot': 20, 'Pixel Brick': 14, 'Pixel Tube': 12,
-  'AX2': 25, 'AX5': 18, 'Plutos': 30, 'Chandelier': 20,
-  'Dome Lights': 6, 'Circle Brackets': 5, 'Air Wall Track': 8,
-  'Clamp Brackets Tree': 5,
+  'Dacore': 10, 'Pinspot': 25, 'Dual Beam': 15, 'Gobo': 50,
+  'Super Spot': 100, 'Pixel Brick': 30, 'Pixel Tube': 40,
+  'AX2': 50, 'AX5': 40, 'Plutos': 50, 'Chandelier': 10,
+  'Dome Lights': 10, 'Haze': 200,
 };
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -73,6 +72,7 @@ interface Step1Data {
   eventName: string;
   startDate: string;
   endDate: string;
+  billingDays: number;
   venue: string;
   eventType: string;
   budget: string;
@@ -132,6 +132,29 @@ function Step1Form({ data, onChange, onNext }: {
               style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
           </div>
         ))}
+      </div>
+
+      {/* Billing Days */}
+      <div>
+        <label style={labelStyle}>How many days are we charging the client?</label>
+        <div className="flex items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            value={data.billingDays}
+            onChange={e => onChange({ billingDays: Math.max(1, parseInt(e.target.value) || 1) })}
+            style={{ ...fieldStyle, width: '80px' }}
+            className="outline-none"
+          />
+          <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
+            billing day{data.billingDays !== 1 ? 's' : ''}
+          </span>
+        </div>
+        {data.startDate && data.endDate && (
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', marginTop: '6px', fontWeight: 200 }}>
+            Event span: {daysBetween(data.startDate, data.endDate)} days · Billing: {data.billingDays} day{data.billingDays !== 1 ? 's' : ''}
+          </div>
+        )}
       </div>
 
       <div>
@@ -339,7 +362,9 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
             return (
               <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                 <span style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-urbanist)' }}>
-                  {type}: {sel.lightCount} lights × ${sel.pricePerLight}/light × {days}d
+                  {type === 'Haze'
+                    ? `Haze Machines × ${days}d`
+                    : `${type}: ${sel.lightCount} lights × $${sel.pricePerLight}/light × ${days}d`}
                 </span>
                 <span style={{ fontSize: '13px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', marginLeft: '16px', flexShrink: 0 }}>
                   ${subtotal.toLocaleString()}
@@ -365,6 +390,62 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
           const sel = selection[type];
           const current = sel?.lightCount ?? 0;
           const subtotal = current * pricePerLight * days;
+          const isHaze = type === 'Haze';
+          const hazeOn = isHaze && current > 0;
+
+          if (isHaze) {
+            // Haze: binary toggle (machine, not per-light)
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() => {
+                  if (hazeOn) {
+                    const next = { ...selection }; delete next['Haze']; onChangeSelection(next);
+                  } else {
+                    const { caseIds } = selectOptimalCases(allCases, unavailableIds, 'Haze', cases[0]?.actual_light_count ?? 1);
+                    onChangeSelection({ ...selection, Haze: { lightCount: cases[0]?.actual_light_count ?? 1, cases: caseIds, pricePerLight } });
+                  }
+                }}
+                style={{
+                  width: '100%', textAlign: 'left',
+                  background: hazeOn ? 'rgba(196,154,42,0.08)' : '#0c1317',
+                  border: hazeOn ? '1px solid rgba(196,154,42,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                  padding: '18px 20px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 300, color: hazeOn ? 'rgba(196,154,42,0.9)' : '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.05em' }}>
+                    Haze Machines
+                  </div>
+                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
+                    {cases.length} machine{cases.length !== 1 ? 's' : ''} available · ${pricePerLight}/day
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {hazeOn && (
+                    <span style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(196,154,42,0.9)', fontFamily: 'var(--font-josefin)' }}>
+                      ${subtotal.toLocaleString()}
+                    </span>
+                  )}
+                  <div style={{
+                    width: '36px', height: '20px', borderRadius: '10px',
+                    background: hazeOn ? 'rgba(196,154,42,0.5)' : 'rgba(255,255,255,0.08)',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                  }}>
+                    <div style={{
+                      position: 'absolute', top: '3px', left: hazeOn ? '19px' : '3px',
+                      width: '14px', height: '14px', borderRadius: '50%',
+                      background: hazeOn ? 'rgba(196,154,42,0.95)' : 'rgba(255,255,255,0.3)',
+                      transition: 'left 0.2s, background 0.2s',
+                    }} />
+                  </div>
+                </div>
+              </button>
+            );
+          }
 
           return (
             <div key={type} style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.07)', padding: '18px 20px' }}>
@@ -687,11 +768,75 @@ function StepIndicator({ step }: { step: number }) {
 
 const defaultStep1: Step1Data = {
   clientName: '', clientContact: '', eventName: '', startDate: '', endDate: '',
-  venue: '', eventType: '', budget: '', notes: '', shop: 'Orlando',
+  billingDays: 1, venue: '', eventType: '', budget: '', notes: '', shop: 'Orlando',
 };
 
+interface PricingSetting { id: string; light_type: string; price_per_day: number; }
+
+function PricingSettingsTab() {
+  const [settings, setSettings] = useState<PricingSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [editVals, setEditVals] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase.from('pricing_settings').select('*').order('light_type').then(({ data }) => {
+      const d = (data ?? []) as PricingSetting[];
+      setSettings(d);
+      const vals: Record<string, string> = {};
+      d.forEach(s => { vals[s.id] = String(s.price_per_day); });
+      setEditVals(vals);
+      setLoading(false);
+    });
+  }, []);
+
+  async function savePrice(s: PricingSetting) {
+    const newPrice = parseFloat(editVals[s.id] ?? String(s.price_per_day));
+    if (isNaN(newPrice)) return;
+    setSaving(s.id);
+    await supabase.from('pricing_settings').update({ price_per_day: newPrice, updated_at: new Date().toISOString() }).eq('id', s.id);
+    setSettings(prev => prev.map(p => p.id === s.id ? { ...p, price_per_day: newPrice } : p));
+    setSaving(null);
+  }
+
+  const labelStyle = { fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' };
+
+  if (loading) return <div className="flex justify-center py-10"><Loader2 size={14} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} /></div>;
+
+  return (
+    <div className="space-y-1 mt-6">
+      <div style={{ ...labelStyle, marginBottom: '16px' }}>Price per Light · per Day</div>
+      {settings.map(s => (
+        <div key={s.id} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>{s.light_type}</span>
+          <div className="flex items-center gap-2">
+            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>$</span>
+            <input
+              type="number"
+              min={0}
+              value={editVals[s.id] ?? ''}
+              onChange={e => setEditVals(prev => ({ ...prev, [s.id]: e.target.value }))}
+              onBlur={() => savePrice(s)}
+              style={{
+                width: '64px', background: 'transparent', border: 'none',
+                borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#ffffff',
+                fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '14px',
+                outline: 'none', textAlign: 'right', padding: '0 0 4px 0',
+              }}
+            />
+            {saving === s.id && <Loader2 size={10} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />}
+          </div>
+        </div>
+      ))}
+      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, marginTop: '16px' }}>
+        Changes apply to new quotes only. Click outside a field to save.
+      </p>
+    </div>
+  );
+}
+
 export default function BookingPage() {
-  const [mode, setMode]   = useState<'list' | 'new'>('list');
+  const [mode, setMode]   = useState<'list' | 'new' | 'pricing'>('list');
   const [step, setStep]   = useState(1);
   const [step1, setStep1] = useState<Step1Data>(defaultStep1);
   const [selection, setSelection] = useState<Record<string, EquipmentSelection>>({});
@@ -700,9 +845,7 @@ export default function BookingPage() {
   const [loadingCases, setLoadingCases]     = useState(false);
   const [isSaving, setIsSaving]   = useState(false);
 
-  const days = step1.startDate
-    ? daysBetween(step1.startDate, step1.endDate || step1.startDate)
-    : 1;
+  const days = step1.billingDays;
 
   const totalPrice = Object.entries(selection).reduce((sum, [type, sel]) => {
     return sum + sel.lightCount * (LIGHT_PRICES[type] ?? 10) * days;
@@ -836,26 +979,38 @@ export default function BookingPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
-            {mode === 'list' ? 'Booking' : 'New Booking'}
+            {mode === 'list' ? 'Booking' : mode === 'pricing' ? 'Pricing' : 'New Booking'}
           </h1>
-          {mode === 'list' ? (
-            <button onClick={() => { setMode('new'); setStep(1); }}
-              className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-70"
-              style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}>
-              <Plus size={10} strokeWidth={1.5} /> New
-            </button>
-          ) : (
-            <button onClick={() => { setMode('list'); setStep(1); }}
-              className="flex items-center gap-1.5 transition-opacity hover:opacity-50"
-              style={{ color: 'rgba(255,255,255,0.3)' }}>
-              <X size={14} strokeWidth={1.5} />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {mode === 'list' && (
+              <>
+                <button onClick={() => setMode('pricing')}
+                  className="px-3 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-70"
+                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  Pricing
+                </button>
+                <button onClick={() => { setMode('new'); setStep(1); }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-70"
+                  style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}>
+                  <Plus size={10} strokeWidth={1.5} /> New
+                </button>
+              </>
+            )}
+            {(mode === 'new' || mode === 'pricing') && (
+              <button onClick={() => { setMode('list'); setStep(1); }}
+                className="flex items-center gap-1.5 transition-opacity hover:opacity-50"
+                style={{ color: 'rgba(255,255,255,0.3)' }}>
+                <X size={14} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       <main className="px-5 py-6 max-w-2xl">
-        {mode === 'list' ? (
+        {mode === 'pricing' ? (
+          <PricingSettingsTab />
+        ) : mode === 'list' ? (
           <BookingList onNew={() => { setMode('new'); setStep(1); }} />
         ) : (
           <>

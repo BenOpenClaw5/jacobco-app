@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Loader2, ArrowRight, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Loader2, ArrowRight, AlertTriangle, ExternalLink, Check } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { InventoryCase, EventCard, Event, Shop } from '@/lib/types';
@@ -54,6 +54,10 @@ export default function InventoryPage() {
   const [shop, setShop] = useState<Shop | 'all'>('all');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [transferring, setTransferring] = useState<string | null>(null);
+  const [editingCount, setEditingCount] = useState<string | null>(null);
+  const [editCountVal, setEditCountVal] = useState('');
+  const [savingCount, setSavingCount] = useState<string | null>(null);
+  const countInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,6 +93,21 @@ export default function InventoryPage() {
       setCases(prev => prev.map(c => c.id === caseId ? { ...c, shop: to } : c));
     } catch (err) { console.error(err); }
     finally { setTransferring(null); }
+  }
+
+  async function saveCount(caseId: string) {
+    const newCount = parseInt(editCountVal);
+    if (isNaN(newCount) || newCount < 0) { setEditingCount(null); return; }
+    setSavingCount(caseId);
+    try {
+      await supabase.from('inventory_cases').update({
+        actual_light_count: newCount,
+        last_updated_by: 'Guest User',
+        last_updated_at: new Date().toISOString(),
+      }).eq('id', caseId);
+      setCases(prev => prev.map(c => c.id === caseId ? { ...c, actual_light_count: newCount } : c));
+    } catch (err) { console.error(err); }
+    finally { setSavingCount(null); setEditingCount(null); }
   }
 
   const filtered = shop === 'all' ? cases : cases.filter(c => c.shop === shop);
@@ -311,9 +330,38 @@ export default function InventoryPage() {
                                       <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.08)', maxWidth: '80px', position: 'relative' }}>
                                         <div style={{ height: '100%', width: `${fullPct}%`, background: isPartial ? 'rgba(220,160,80,0.6)' : 'rgba(120,200,140,0.6)', transition: 'width 0.3s' }} />
                                       </div>
-                                      <span style={{ fontSize: '9px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
-                                        {c.actual_light_count ?? c.standard_light_count}/{c.standard_light_count}
-                                      </span>
+                                      {/* Inline count editor */}
+                                      {editingCount === c.id ? (
+                                        <form onSubmit={e => { e.preventDefault(); saveCount(c.id); }} className="flex items-center gap-1">
+                                          <input
+                                            ref={countInputRef}
+                                            type="number"
+                                            min={0}
+                                            value={editCountVal}
+                                            onChange={e => setEditCountVal(e.target.value)}
+                                            onBlur={() => saveCount(c.id)}
+                                            style={{
+                                              width: '36px', background: 'transparent',
+                                              border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)',
+                                              color: '#ffffff', fontSize: '9px', fontFamily: 'var(--font-urbanist)',
+                                              outline: 'none', padding: '0 0 1px 0', textAlign: 'center',
+                                            }}
+                                            autoFocus
+                                          />
+                                          <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>/{c.standard_light_count}</span>
+                                          {savingCount === c.id
+                                            ? <Loader2 size={8} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />
+                                            : <Check size={8} style={{ color: 'rgba(120,200,140,0.6)' }} />}
+                                        </form>
+                                      ) : (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); setEditingCount(c.id); setEditCountVal(String(c.actual_light_count ?? c.standard_light_count ?? 0)); setTimeout(() => countInputRef.current?.focus(), 50); }}
+                                          title="Click to edit count"
+                                          style={{ fontSize: '9px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', cursor: 'text', background: 'none', border: 'none', padding: 0 }}
+                                        >
+                                          {c.actual_light_count ?? c.standard_light_count}/{c.standard_light_count}
+                                        </button>
+                                      )}
                                     </div>
                                   )}
 
@@ -327,6 +375,21 @@ export default function InventoryPage() {
                                   {caseValue(c) > 0 && (
                                     <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginTop: '4px' }}>
                                       ${caseValue(c).toLocaleString()} case value
+                                    </div>
+                                  )}
+
+                                  {/* Links */}
+                                  {Array.isArray((c as InventoryCase & { links?: { label: string; url: string }[] }).links) && ((c as InventoryCase & { links?: { label: string; url: string }[] }).links?.length ?? 0) > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {(c as InventoryCase & { links: { label: string; url: string }[] }).links.map((lnk, i) => (
+                                        <a key={i} href={lnk.url} target="_blank" rel="noopener noreferrer"
+                                          onClick={e => e.stopPropagation()}
+                                          className="flex items-center gap-1 hover:opacity-70 transition-opacity"
+                                          style={{ fontSize: '9px', color: 'rgba(100,160,210,0.7)', fontFamily: 'var(--font-urbanist)', textDecoration: 'none' }}>
+                                          <ExternalLink size={9} />
+                                          {lnk.label || 'Link'}
+                                        </a>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
