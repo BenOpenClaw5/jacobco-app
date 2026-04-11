@@ -58,8 +58,8 @@ const SELECTED_BTN_STYLES: Record<string, React.CSSProperties> = {
 
 const UNSELECTED_BTN_STYLE: React.CSSProperties = {
   background: 'transparent',
-  border: '1px solid rgba(255,255,255,0.10)',
-  color: 'rgba(255,255,255,0.30)',
+  border: '1px solid var(--border)',
+  color: 'var(--text-muted)',
   boxShadow: 'none',
 };
 
@@ -72,20 +72,20 @@ function ReviewNoteModal({ onSave, onSkip }: { onSave: (note: string) => void; o
       className="fixed inset-0 z-50 flex items-center justify-center px-6"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onSkip} />
+      <div className="absolute inset-0" style={{ background: 'var(--modal-bg)', backdropFilter: 'blur(8px)' }} onClick={onSkip} />
       <motion.div
         className="relative w-full max-w-sm p-8"
-        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
       >
-        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Mark as Reviewed
         </div>
-        <h3 style={{ fontSize: '18px', fontWeight: 300, letterSpacing: '0.06em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 300, letterSpacing: '0.06em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
           Leave a note?
         </h3>
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+        <div style={{ height: '1px', background: 'var(--border-subtle)', marginBottom: '20px' }} />
         <textarea
           value={note}
           onChange={e => setNote(e.target.value)}
@@ -96,8 +96,8 @@ function ReviewNoteModal({ onSave, onSkip }: { onSave: (note: string) => void; o
             width: '100%',
             background: 'transparent',
             border: 'none',
-            borderBottom: '1px solid rgba(255,255,255,0.12)',
-            color: '#ffffff',
+            borderBottom: '1px solid var(--border)',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-urbanist)',
             fontWeight: 200,
             fontSize: '13px',
@@ -112,7 +112,7 @@ function ReviewNoteModal({ onSave, onSkip }: { onSave: (note: string) => void; o
           <button
             onClick={onSkip}
             className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+            style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
           >
             Skip
           </button>
@@ -139,23 +139,23 @@ function DeleteConfirm({ onConfirm, onCancel, isDeleting }: {
       className="fixed inset-0 z-50 flex items-center justify-center px-6"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
+      <div className="absolute inset-0" style={{ background: 'var(--modal-bg)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
       <motion.div
         className="relative w-full max-w-xs p-8"
-        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
       >
-        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
           Delete Permanently?
         </h3>
-        <p className="text-xs font-light mb-5" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <p className="text-xs font-light mb-5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           This cannot be undone. The submission and all reimbursement records will be deleted.
         </p>
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+        <div style={{ height: '1px', background: 'var(--border-subtle)', marginBottom: '20px' }} />
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+            style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={isDeleting}
@@ -213,13 +213,9 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
   async function handleStatusChange(newStatus: string) {
     if (!submission) return;
 
-    // Toggle logic:
-    // - Clicking current status → back to 'submitted' (pending)
-    // - Clicking different status → set that status (with review note modal if reviewed)
     const isCurrentlySelected = submission.status === newStatus;
     const finalStatus = isCurrentlySelected ? 'submitted' : newStatus;
 
-    // If moving TO reviewed (not toggling off), show the review note modal
     if (finalStatus === 'reviewed') {
       setShowReviewNote(true);
       return;
@@ -276,27 +272,27 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
 
   if (authed === null || (authed && loading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#070c0e' }}>
-        <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.15)' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
       </div>
     );
   }
   if (!authed) return null;
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
-        style={{ background: 'rgba(7,12,14,0.96)', borderBottom: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)' }}>
+        style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--nav-border)', backdropFilter: 'blur(16px)' }}>
         <div className="flex items-center gap-4">
           <Link href="/admin/payroll" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
-            <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
           </Link>
-          <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
+          <div className="w-px h-4" style={{ background: 'var(--border)' }} />
           <Logo size="sm" asLink={false} />
         </div>
         <div className="flex items-center gap-3">
-          <span style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+          <span style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
             Payroll Admin
           </span>
           <button
@@ -316,14 +312,14 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
           {/* Employee header */}
-          <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+          <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
               {submission.employee_role}
             </div>
-            <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
               {submission.employee_name}
             </h1>
-            <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+            <p style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
               Submitted {formatDate(submission.submitted_at)}
             </p>
           </div>
@@ -358,17 +354,17 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                     </button>
                   );
                 })}
-                {savingStatus && <Loader2 size={12} className="animate-spin self-center" style={{ color: 'rgba(255,255,255,0.2)' }} />}
+                {savingStatus && <Loader2 size={12} className="animate-spin self-center" style={{ color: 'var(--text-dim)' }} />}
               </div>
               {/* Review note display */}
               {submission.review_note && submission.status === 'reviewed' && (
-                <p style={{ fontSize: '11px', fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)', marginTop: '10px', fontWeight: 200 }}>
+                <p style={{ fontSize: '11px', fontStyle: 'italic', color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '10px', fontWeight: 200 }}>
                   &ldquo;{submission.review_note}&rdquo;
                 </p>
               )}
             </section>
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />
+            <div style={{ height: '1px', background: 'var(--border-subtle)' }} />
 
             {/* Pay period */}
             <section>
@@ -381,7 +377,7 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
               <div style={LABEL}>Events Worked</div>
               <div style={VALUE}>{submission.events_count} event{submission.events_count !== 1 ? 's' : ''}</div>
               {submission.events_description && (
-                <div style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', marginTop: '6px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '6px' }}>
                   {submission.events_description}
                 </div>
               )}
@@ -401,18 +397,18 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="space-y-3 mt-1">
                   {reimbursements.map((r, i) => (
-                    <div key={r.id} style={{ border: '1px solid rgba(255,255,255,0.07)', padding: '14px 16px', background: 'rgba(255,255,255,0.02)' }}>
+                    <div key={r.id} style={{ border: '1px solid var(--border)', padding: '14px 16px', background: 'var(--card)' }}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div style={{ fontSize: '16px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
                             ${Number(r.amount).toFixed(2)}
                           </div>
                           {r.description && (
-                            <div style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
                               {r.description}
                             </div>
                           )}
-                          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '10px' }}>
+                          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '10px' }}>
                             Item {i + 1}
                           </div>
                         </div>
@@ -432,13 +428,13 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
             {submission.general_notes && (
               <section>
                 <div style={LABEL}>Employee Notes</div>
-                <div style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-urbanist)', lineHeight: 1.7 }}>
+                <div style={{ fontSize: '13px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', lineHeight: 1.7 }}>
                   {submission.general_notes}
                 </div>
               </section>
             )}
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />
+            <div style={{ height: '1px', background: 'var(--border-subtle)' }} />
 
             {/* Admin notes */}
             <section>
@@ -450,14 +446,14 @@ export default function AdminDetailPage({ params }: { params: Promise<{ id: stri
                 rows={4}
                 placeholder="Add internal notes, follow-up actions, etc."
                 className="w-full resize-none outline-none placeholder:opacity-20"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '13px', padding: '12px 14px', lineHeight: 1.7 }}
+                style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '13px', padding: '12px 14px', lineHeight: 1.7 }}
               />
               <div className="flex items-center justify-between mt-2">
                 <button
                   onClick={saveAdminNotes}
                   disabled={savingNotes}
                   className="text-[9px] tracking-[0.2em] uppercase font-light flex items-center gap-1.5 transition-opacity hover:opacity-60"
-                  style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}
+                  style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
                 >
                   {savingNotes && <Loader2 size={9} className="animate-spin" />}
                   {savingNotes ? 'Saving' : 'Save Notes'}
@@ -494,7 +490,7 @@ const LABEL: React.CSSProperties = {
   letterSpacing: '0.28em',
   textTransform: 'uppercase',
   fontWeight: 300,
-  color: 'rgba(255,255,255,0.2)',
+  color: 'var(--text-dim)',
   fontFamily: 'var(--font-josefin)',
   marginBottom: '8px',
 };
@@ -502,6 +498,6 @@ const LABEL: React.CSSProperties = {
 const VALUE: React.CSSProperties = {
   fontSize: '14px',
   fontWeight: 200,
-  color: 'rgba(255,255,255,0.7)',
+  color: 'var(--text-secondary)',
   fontFamily: 'var(--font-urbanist)',
 };

@@ -83,9 +83,9 @@ function MemberChip({ name, selected, onToggle }: { name: string; selected: bool
         alignItems: 'center',
         gap: '6px',
         padding: '5px 10px',
-        border: selected ? `1px solid ${color}60` : '1px solid rgba(255,255,255,0.1)',
+        border: selected ? `1px solid ${color}60` : '1px solid var(--border)',
         background: selected ? `${color}18` : 'transparent',
-        color: selected ? color : 'rgba(255,255,255,0.35)',
+        color: selected ? color : 'var(--text-dim)',
         fontFamily: 'var(--font-josefin)',
         fontSize: '9px',
         letterSpacing: '0.14em',
@@ -122,7 +122,7 @@ function EventPill({ event, selectedMembers }: { event: Event; selectedMembers: 
     selectedMembers.length === 0 || selectedMembers.includes(m)
   );
   // Use first matching member's color, or generic
-  const firstColor = members.length > 0 ? (MEMBER_COLORS[members[0]] ?? 'rgba(255,255,255,0.4)') : 'rgba(255,255,255,0.4)';
+  const firstColor = members.length > 0 ? (MEMBER_COLORS[members[0]] ?? 'var(--text-secondary)') : 'var(--text-secondary)';
   const multiColor = members.length > 1;
 
   return (
@@ -208,21 +208,21 @@ export default function SchedulePage() {
   const availability = checkDateParsed ? getAvailabilityForDate(checkDateParsed, events, selectedMembers) : null;
 
   return (
-    <motion.div {...pageAnim} className="min-h-screen" style={{ background: '#070c0e' }}>
+    <motion.div {...pageAnim} className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Team
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
           Schedule
         </h1>
 
         {/* Member selector */}
         <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
             Filter by team member {selectedMembers.length > 0 && `· ${selectedMembers.length} selected`}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -242,8 +242,8 @@ export default function SchedulePage() {
                   alignItems: 'center',
                   gap: '4px',
                   padding: '5px 10px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.25)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-muted)',
                   fontFamily: 'var(--font-josefin)',
                   fontSize: '9px',
                   letterSpacing: '0.14em',
@@ -259,21 +259,21 @@ export default function SchedulePage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
         </div>
       ) : (
         <>
           {/* Month nav */}
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <ChevronLeft size={13} strokeWidth={1.5} />
             </button>
-            <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ffffff', fontWeight: 300 }}>
+            <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-primary)', fontWeight: 300 }}>
               {MONTHS[month]} {year}
             </span>
             <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <ChevronRight size={13} strokeWidth={1.5} />
             </button>
           </div>
@@ -281,25 +281,25 @@ export default function SchedulePage() {
           {/* Day headers */}
           <div className="grid grid-cols-7 px-5 pt-3 pb-1">
             {DAYS.map(d => (
-              <div key={d} style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', textAlign: 'center', padding: '4px 0' }}>
+              <div key={d} style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', textAlign: 'center', padding: '4px 0' }}>
                 {d}
               </div>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 px-5 pb-8 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="grid grid-cols-7 px-5 pb-8 gap-px" style={{ background: 'var(--border-subtle)' }}>
             {cells.map((day, i) => {
               const dayEvents = day ? eventsOnDay(day, events, selectedMembers) : [];
               const isToday   = day ? sameDay(day, today) : false;
               return (
-                <div key={i} style={{ background: '#070c0e', minHeight: '80px', padding: '6px 4px' }}>
+                <div key={i} style={{ background: 'var(--bg)', minHeight: '80px', padding: '6px 4px' }}>
                   {day && (
                     <>
                       <div style={{
                         fontSize: '11px', fontFamily: 'var(--font-josefin)', fontWeight: 300,
-                        color: isToday ? '#ffffff' : 'rgba(255,255,255,0.3)',
-                        background: isToday ? 'rgba(255,255,255,0.12)' : 'transparent',
+                        color: isToday ? 'var(--text-primary)' : 'var(--text-muted)',
+                        background: isToday ? 'var(--surface-elevated)' : 'transparent',
                         borderRadius: isToday ? '50%' : 0,
                         width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         marginBottom: '4px',
@@ -311,7 +311,7 @@ export default function SchedulePage() {
                           <EventPill key={ev.id} event={ev} selectedMembers={selectedMembers} />
                         ))}
                         {dayEvents.length > 3 && (
-                          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', padding: '0 2px' }}>
+                          <div style={{ fontSize: '8px', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', padding: '0 2px' }}>
                             +{dayEvents.length - 3}
                           </div>
                         )}
@@ -324,16 +324,16 @@ export default function SchedulePage() {
           </div>
 
           {/* Who's Free */}
-          <div className="px-5 py-8 max-w-lg" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+          <div className="px-5 py-8 max-w-lg" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
               Availability
             </div>
-            <h2 style={{ fontSize: '20px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
               Who&apos;s Free?
             </h2>
 
             <div>
-              <label style={{ display: 'block', fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
+              <label style={{ display: 'block', fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
                 Check availability on
               </label>
               <input
@@ -343,14 +343,14 @@ export default function SchedulePage() {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  borderBottom: '1px solid rgba(255,255,255,0.15)',
-                  color: '#ffffff',
+                  borderBottom: '1px solid var(--border-strong)',
+                  color: 'var(--text-primary)',
                   fontFamily: 'var(--font-urbanist)',
                   fontWeight: 200,
                   fontSize: '14px',
                   padding: '0 0 8px 0',
                   outline: 'none',
-                  colorScheme: 'dark',
+                  colorScheme: 'light dark',
                   width: '200px',
                 }}
               />
@@ -375,7 +375,7 @@ export default function SchedulePage() {
                       </span>
                     </div>
                     {availability.available.length === 0 ? (
-                      <div style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                         No one available this day.
                       </div>
                     ) : (
@@ -422,7 +422,7 @@ export default function SchedulePage() {
                               }}>
                                 {name}
                               </span>
-                              <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
                                 {evs.join(', ')}
                               </span>
                             </div>
@@ -438,14 +438,14 @@ export default function SchedulePage() {
 
           {/* Legend */}
           {selectedMembers.length > 0 && (
-            <div className="px-5 pb-8" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="px-5 pb-8" style={{ borderTop: '1px solid var(--border-subtle)' }}>
               <div style={{ paddingTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {selectedMembers.map(name => {
                   const color = MEMBER_COLORS[name] ?? '#ffffff';
                   return (
                     <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
-                      <span style={{ fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}>
+                      <span style={{ fontSize: '9px', letterSpacing: '0.12em', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                         {name}
                       </span>
                     </div>

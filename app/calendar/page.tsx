@@ -46,23 +46,23 @@ function ArchiveConfirm({ event, onConfirm, onCancel, isDeleting }: {
       <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
       <motion.div
         className="relative w-full max-w-xs p-8"
-        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.08)' }}
         initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
       >
-        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
           Archive Event?
         </h3>
-        <p className="text-xs font-light mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <p className="text-xs font-light mb-1" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           This hides the event from the board and calendar.
         </p>
-        <p className="text-sm font-light mb-4" style={{ color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <p className="text-sm font-light mb-4" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           &quot;{event.name}&quot;
         </p>
-        <div className="h-px mb-5" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        <div className="h-px mb-5" style={{ background: 'var(--border)' }} />
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+            style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontFamily: 'var(--font-josefin)' }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={isDeleting}
@@ -154,16 +154,16 @@ export default function CalendarPage() {
   const futureAgenda = agenda.filter(e => e.event_start_date && parseLocal(e.event_start_date) >= today);
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Schedule
         </div>
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
             Calendar
           </h1>
           <div className="flex items-center gap-2">
@@ -173,18 +173,18 @@ export default function CalendarPage() {
                 className="px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase font-light transition-all"
                 style={{
                   fontFamily: 'var(--font-josefin)',
-                  border: shopFilter === s ? `1px solid ${SHOP_ACCENT[s] ?? 'rgba(255,255,255,0.4)'}` : '1px solid rgba(255,255,255,0.1)',
-                  color: shopFilter === s ? (SHOP_ACCENT[s] ?? '#fff') : 'rgba(255,255,255,0.25)',
+                  border: shopFilter === s ? `1px solid ${SHOP_ACCENT[s] ?? 'var(--border-strong)'}` : '1px solid var(--border)',
+                  color: shopFilter === s ? (SHOP_ACCENT[s] ?? 'var(--text-primary)') : 'var(--text-muted)',
                 }}>
                 {s}
               </button>
             ))}
             {/* View toggle */}
-            <div className="flex" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex" style={{ border: '1px solid var(--border)' }}>
               {([['month', Grid3X3], ['agenda', List]] as const).map(([v, Icon]) => (
                 <button key={v} onClick={() => setView(v)}
                   className="w-8 h-8 flex items-center justify-center transition-all"
-                  style={{ background: view === v ? 'rgba(255,255,255,0.06)' : 'transparent', color: view === v ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)' }}>
+                  style={{ background: view === v ? 'var(--surface)' : 'transparent', color: view === v ? 'var(--text-muted)' : 'var(--text-dim)' }}>
                   <Icon size={12} strokeWidth={1.5} />
                 </button>
               ))}
@@ -195,23 +195,23 @@ export default function CalendarPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
         </div>
       ) : (
         <AnimatePresence mode="wait">
           {view === 'month' ? (
             <motion.div key="month" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
               {/* Month nav */}
-              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                 <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center transition-opacity hover:opacity-60"
-                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                   <ChevronLeft size={13} strokeWidth={1.5} />
                 </button>
-                <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ffffff', fontWeight: 300 }}>
+                <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-primary)', fontWeight: 300 }}>
                   {MONTHS[month]} {year}
                 </span>
                 <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center transition-opacity hover:opacity-60"
-                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                   <ChevronRight size={13} strokeWidth={1.5} />
                 </button>
               </div>
@@ -219,24 +219,24 @@ export default function CalendarPage() {
               {/* Day labels */}
               <div className="grid grid-cols-7 px-5 pt-3 pb-1">
                 {DAYS.map(d => (
-                  <div key={d} style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', textAlign: 'center', padding: '4px 0' }}>
+                  <div key={d} style={{ fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', textAlign: 'center', padding: '4px 0' }}>
                     {d}
                   </div>
                 ))}
               </div>
 
               {/* Grid */}
-              <div className="grid grid-cols-7 px-5 pb-8 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="grid grid-cols-7 px-5 pb-8 gap-px" style={{ background: 'var(--border-subtle)' }}>
                 {cells.map((day, i) => {
                   const dayEvents = day ? eventsOnDay(day) : [];
                   const isToday   = day ? sameDay(day, today) : false;
                   return (
-                    <div key={i} style={{ background: '#070c0e', minHeight: '80px', padding: '6px 5px' }}>
+                    <div key={i} style={{ background: 'var(--bg)', minHeight: '80px', padding: '6px 5px' }}>
                       {day && (
                         <>
                           <div style={{
                             fontSize: '11px', fontFamily: 'var(--font-josefin)', fontWeight: 300,
-                            color: isToday ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                            color: isToday ? 'var(--text-primary)' : 'var(--text-muted)',
                             background: isToday ? 'rgba(255,255,255,0.12)' : 'transparent',
                             borderRadius: isToday ? '50%' : 0,
                             width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -275,7 +275,7 @@ export default function CalendarPage() {
                               );
                             })}
                             {dayEvents.length > 3 && (
-                              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', padding: '0 2px' }}>
+                              <div style={{ fontSize: '8px', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', padding: '0 2px' }}>
                                 +{dayEvents.length - 3}
                               </div>
                             )}
@@ -297,7 +297,7 @@ export default function CalendarPage() {
                 <AgendaSection title="Past" events={pastAgenda} dim onArchive={setDeletingEvent} />
               )}
               {agenda.length === 0 && (
-                <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '12px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '24px' }}>
+                <div style={{ color: 'var(--text-dim)', fontSize: '12px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '24px' }}>
                   No events found.
                 </div>
               )}
@@ -323,7 +323,7 @@ export default function CalendarPage() {
 function AgendaSection({ title, events, dim, onArchive }: { title: string; events: Event[]; dim?: boolean; onArchive: (e: Event) => void }) {
   return (
     <div>
-      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
         {title}
       </div>
       <div className="space-y-px">
@@ -336,13 +336,13 @@ function AgendaSection({ title, events, dim, onArchive }: { title: string; event
           const dateLabel = start ? start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
 
           return (
-            <div key={event.id} className="group relative flex items-center" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', opacity: dim ? 0.5 : 1 }}>
+            <div key={event.id} className="group relative flex items-center" style={{ borderBottom: '1px solid var(--border-subtle)', opacity: dim ? 0.5 : 1 }}>
               <Link href={`/events/${event.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-4 py-4">
                   <div className="w-px self-stretch flex-shrink-0" style={{ background: accent, minHeight: '24px' }} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ fontSize: '14px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
                         {event.name}
                       </span>
                       <span style={{ fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: accent, fontFamily: 'var(--font-josefin)' }}>
@@ -350,22 +350,22 @@ function AgendaSection({ title, events, dim, onArchive }: { title: string; event
                       </span>
                     </div>
                     <div className="flex items-center gap-4 mt-1 flex-wrap">
-                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
                         {dateLabel}{days > 1 ? ` · ${days} days` : ''}
                       </span>
                       {event.location && (
-                        <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                           {event.location}
                         </span>
                       )}
                       {event.load_by_date && (
-                        <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+                        <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                           Load {new Date(event.load_by_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       )}
                     </div>
                   </div>
-                  <ChevronRight size={12} strokeWidth={1} style={{ color: 'rgba(255,255,255,0.15)', flexShrink: 0 }}
+                  <ChevronRight size={12} strokeWidth={1} style={{ color: 'var(--border-strong)', flexShrink: 0 }}
                     className="transition-transform group-hover:translate-x-0.5 duration-150" />
                 </div>
               </Link>

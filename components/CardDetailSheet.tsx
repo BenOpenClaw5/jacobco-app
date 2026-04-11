@@ -229,14 +229,14 @@ export default function CardDetailSheet({
       stage: s as Stage,
       accent: STAGE_COLORS[s].accent,
     })),
-    ...(card.stage ? [{ label: 'Inventory Pool', stage: null as null, accent: 'rgba(255,255,255,0.35)' }] : []),
+    ...(card.stage ? [{ label: 'Inventory Pool', stage: null as null, accent: 'var(--text-muted)' }] : []),
   ];
 
   const inputStyle = {
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-    color: '#ffffff',
+    borderBottom: '1px solid var(--border)',
+    color: 'var(--text-primary)',
     borderRadius: 0,
     fontFamily: 'var(--font-urbanist)',
     fontWeight: 200,
@@ -260,8 +260,8 @@ export default function CardDetailSheet({
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
           overflow: 'hidden',
-          background: '#0c1317',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--surface)',
+          borderTop: '1px solid var(--border)',
           maxHeight: '92vh',
           boxShadow: '0 -40px 80px rgba(0,0,0,0.7)',
           transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
@@ -271,7 +271,7 @@ export default function CardDetailSheet({
       >
             {/* Drag indicator */}
             <div className="flex justify-center pt-4 pb-2">
-              <div className="w-8 h-px" style={{ background: 'rgba(255,255,255,0.2)' }} />
+              <div className="w-8 h-px" style={{ background: 'var(--border-strong)' }} />
             </div>
 
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(92vh - 24px)' }}>
@@ -286,24 +286,24 @@ export default function CardDetailSheet({
                   </div>
                   <div
                     className="text-4xl font-light tracking-wide"
-                    style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+                    style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}
                   >
                     {card.isCustom ? card.displayName : card.letter}
                   </div>
                   {!card.isCustom && (
                     <div
                       className="text-sm font-light mt-1"
-                      style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
+                      style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
                     >
                       {card.displayName}
                     </div>
                   )}
                   <div className="flex items-center gap-2 mt-3">
-                    <div className="w-3 h-px" style={{ background: card.stage ? STAGE_COLORS[card.stage].accent : 'rgba(255,255,255,0.2)' }} />
+                    <div className="w-3 h-px" style={{ background: card.stage ? STAGE_COLORS[card.stage].accent : 'var(--text-dim)' }} />
                     <span
                       className="text-[10px] tracking-[0.2em] uppercase font-light"
                       style={{
-                        color: card.stage ? STAGE_COLORS[card.stage].accent : 'rgba(255,255,255,0.25)',
+                        color: card.stage ? STAGE_COLORS[card.stage].accent : 'var(--text-muted)',
                         fontFamily: 'var(--font-josefin)',
                       }}
                     >
@@ -311,14 +311,14 @@ export default function CardDetailSheet({
                     </span>
                   </div>
                 </div>
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
-                  <X size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid var(--border)' }}>
+                  <X size={13} style={{ color: 'var(--text-secondary)' }} />
                 </button>
               </div>
 
               {/* ── MOVE TO — top of content, full-width prominent ── */}
-              <div className="px-6 pt-4 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+              <div className="px-6 pt-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                   Move to
                 </label>
 
@@ -331,14 +331,14 @@ export default function CardDetailSheet({
                         Checklist Incomplete
                       </span>
                     </div>
-                    <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-urbanist)', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginBottom: '12px' }}>
                       Tools checklist is not fully packed. Move anyway?
                     </p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setPendingMove(undefined)}
                         className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-60"
-                        style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+                        style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontFamily: 'var(--font-josefin)' }}
                       >
                         Go Back
                       </button>
@@ -382,7 +382,7 @@ export default function CardDetailSheet({
               <div className="px-6 pt-5 space-y-6 pb-10">
                 {/* Notes */}
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Notes
                   </label>
                   <textarea
@@ -403,7 +403,7 @@ export default function CardDetailSheet({
                     { label: 'Prepped by', value: preppedBy, set: setPreppedBy },
                   ].map(({ label, value, set }) => (
                     <div key={label}>
-                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                         {label}
                       </label>
                       <input
@@ -420,15 +420,15 @@ export default function CardDetailSheet({
 
                 {isSaving && (
                   <div className="flex items-center gap-2">
-                    <Loader2 size={9} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
-                    <span className="text-[9px] tracking-widest uppercase font-light" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Saving</span>
+                    <Loader2 size={9} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
+                    <span className="text-[9px] tracking-widest uppercase font-light" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Saving</span>
                   </div>
                 )}
 
                 {/* Dual Beam Cover Color (only for Dual Beam cases) */}
                 {!card.isCustom && card.type === 'Dual Beam' && (
                   <div>
-                    <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                       Dual Beam Cover Color
                     </label>
                     <input
@@ -444,7 +444,7 @@ export default function CardDetailSheet({
 
                 {/* Images */}
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Photos
                   </label>
 
@@ -458,12 +458,12 @@ export default function CardDetailSheet({
                             onClick={() => setLightboxUrl(img.url)}
                             className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <ZoomIn size={16} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.8)' }} />
+                            <ZoomIn size={16} strokeWidth={1.5} style={{ color: '#ffffff' }} />
                           </button>
                           <button
                             onClick={() => handleRemoveImage(img.id, img.storage_path)}
                             className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.15)' }}
+                            style={{ background: 'rgba(0,0,0,0.85)', border: '1px solid var(--border-strong)' }}
                           >
                             <Trash2 size={9} style={{ color: '#ff6b6b' }} />
                           </button>
@@ -476,7 +476,7 @@ export default function CardDetailSheet({
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                     className="flex items-center gap-2 py-2.5 text-xs font-light transition-opacity hover:opacity-60"
-                    style={{ color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 16px', fontFamily: 'var(--font-josefin)', letterSpacing: '0.15em', fontSize: '10px', textTransform: 'uppercase' }}
+                    style={{ color: 'var(--text-dim)', border: '1px solid var(--border)', padding: '8px 16px', fontFamily: 'var(--font-josefin)', letterSpacing: '0.15em', fontSize: '10px', textTransform: 'uppercase' }}
                   >
                     {isUploading ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
                     {isUploading ? 'Uploading' : 'Add Photos'}
@@ -488,11 +488,11 @@ export default function CardDetailSheet({
                 {!card.isCustom && (card.type === 'Pixel Brick' || card.type === 'AX5') && (
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                         Serial Numbers
                       </label>
                       {serialNumbers.filter(sn => sn.serial.trim()).length > 0 && (
-                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+                        <span style={{ fontSize: '9px', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                           {serialNumbers.filter(sn => sn.serial.trim()).length} logged
                         </span>
                       )}
@@ -531,7 +531,7 @@ export default function CardDetailSheet({
                                 saveSerialNumbers(next);
                               }}
                               className="flex-shrink-0 w-5 h-5 flex items-center justify-center transition-opacity hover:opacity-60"
-                              style={{ color: 'rgba(255,255,255,0.25)' }}
+                              style={{ color: 'var(--text-muted)' }}
                             >
                               <X size={11} />
                             </button>
@@ -546,7 +546,7 @@ export default function CardDetailSheet({
                         setSerialNumbers(next);
                       }}
                       className="flex items-center gap-1.5 mt-3 text-[10px] tracking-[0.18em] uppercase font-light transition-opacity hover:opacity-60"
-                      style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}
+                      style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
                     >
                       <Plus size={10} />
                       Add Serial Number
@@ -596,9 +596,9 @@ export default function CardDetailSheet({
             <button
               onClick={() => setLightboxUrl(null)}
               className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.6)' }}
+              style={{ border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(0,0,0,0.6)' }}
             >
-              <X size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+              <X size={14} style={{ color: 'rgba(255,255,255,0.8)' }} />
             </button>
           </div>
         </>
@@ -625,7 +625,7 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
     fontSize: '8px',
     letterSpacing: '0.32em',
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.2)',
+    color: 'var(--text-dim)',
     fontFamily: 'var(--font-josefin)',
     marginBottom: '8px',
     marginTop: '16px',
@@ -635,16 +635,16 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <label style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+        <label style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
           Tools Checklist
         </label>
-        <span style={{ fontSize: '9px', letterSpacing: '0.1em', color: allChecked ? 'rgba(120,200,140,0.8)' : 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+        <span style={{ fontSize: '9px', letterSpacing: '0.1em', color: allChecked ? 'rgba(120,200,140,0.8)' : 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
           {checkedCount} / {TOTAL_ITEMS} packed
         </span>
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: '2px', background: 'rgba(255,255,255,0.07)', borderRadius: '1px', marginBottom: '16px' }}>
+      <div style={{ height: '2px', background: 'var(--border)', borderRadius: '1px', marginBottom: '16px' }}>
         <div style={{ height: '100%', width: `${(checkedCount / TOTAL_ITEMS) * 100}%`, background: allChecked ? 'rgba(120,200,140,0.8)' : 'rgba(255,185,100,0.7)', borderRadius: '1px', transition: 'width 0.2s' }} />
       </div>
 
@@ -666,7 +666,7 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
       ].map(({ label, items }) => (
         <div key={label}>
           <div style={drawerStyle}>{label}</div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
             {items.map(item => {
               const checked = !!checklistState[item.id];
               return (
@@ -680,7 +680,7 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
                     gap: '10px',
                     width: '100%',
                     padding: '10px 0',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderBottom: '1px solid var(--border-subtle)',
                     background: 'transparent',
                     textAlign: 'left',
                     transition: 'opacity 0.1s',
@@ -688,12 +688,12 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
                 >
                   {checked
                     ? <CheckSquare size={13} style={{ color: 'rgba(120,200,140,0.7)', flexShrink: 0 }} />
-                    : <Square size={13} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                    : <Square size={13} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
                   }
                   <span style={{
                     fontSize: '12px',
                     fontWeight: 200,
-                    color: checked ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.7)',
+                    color: checked ? 'var(--text-muted)' : 'var(--text-secondary)',
                     fontFamily: 'var(--font-urbanist)',
                     textDecoration: checked ? 'line-through' : 'none',
                     transition: 'color 0.15s, text-decoration 0.15s',
@@ -717,10 +717,10 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
           padding: '12px',
           border: allChecked && !checklistPacked
             ? '1px solid rgba(120,200,140,0.5)'
-            : '1px solid rgba(255,255,255,0.08)',
+            : '1px solid var(--border)',
           color: allChecked && !checklistPacked
             ? 'rgba(120,200,140,0.9)'
-            : 'rgba(255,255,255,0.2)',
+            : 'var(--text-dim)',
           fontFamily: 'var(--font-josefin)',
           fontSize: '10px',
           letterSpacing: '0.25em',
@@ -741,7 +741,7 @@ function ToolsChecklist({ checklistState, checklistPacked, onToggle, onPackAll, 
         {checklistPacked ? 'Packed' : 'All Packed ✓'}
       </button>
 
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
+      <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '20px 0' }} />
     </div>
   );
 }

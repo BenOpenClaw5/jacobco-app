@@ -40,9 +40,9 @@ const STAGE_LABELS: Record<Stage, string> = {
 
 const selectStyle: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: '#ffffff',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
+  color: 'var(--text-primary)',
   fontFamily: 'var(--font-urbanist)',
   fontWeight: 200,
   fontSize: '13px',
@@ -54,7 +54,7 @@ const selectStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   ...selectStyle,
-  background: 'rgba(255,255,255,0.03)',
+  background: 'var(--card)',
 };
 
 // ─── Field wrapper ────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ const inputStyle: React.CSSProperties = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
         {label}
       </div>
       {children}
@@ -154,26 +154,26 @@ export default function CommandPalette({ open, onClose, prefill }: Props) {
           {/* Panel */}
           <motion.div
             className="relative w-full max-w-lg"
-            style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
             initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 350 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3">
                 {selectedCommand && (
                   <button onClick={handleBack} className="flex items-center gap-1 transition-opacity hover:opacity-60"
-                    style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)', fontSize: '9px', letterSpacing: '0.15em' }}>
+                    style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', fontSize: '9px', letterSpacing: '0.15em' }}>
                     <ChevronLeft size={11} strokeWidth={1.5} />
                   </button>
                 )}
-                <span style={{ fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)', fontWeight: 300 }}>
+                <span style={{ fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', fontWeight: 300 }}>
                   {cmd ? cmd.label : 'Command Palette'}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.1em' }}>⌘K</span>
-                <button onClick={handleClose} className="transition-opacity hover:opacity-60" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                <span style={{ fontSize: '9px', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.1em' }}>⌘K</span>
+                <button onClick={handleClose} className="transition-opacity hover:opacity-60" style={{ color: 'var(--text-muted)' }}>
                   <X size={14} strokeWidth={1.5} />
                 </button>
               </div>
@@ -217,25 +217,25 @@ export default function CommandPalette({ open, onClose, prefill }: Props) {
 function CommandSection({ title, commands, onSelect }: { title: string; commands: CommandDef[]; onSelect: (id: string) => void }) {
   return (
     <div>
-      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
         {title}
       </div>
       <div className="space-y-px">
         {commands.map(cmd => (
           <button key={cmd.id} onClick={() => onSelect(cmd.id)}
             className="w-full text-left flex items-center justify-between px-3 py-3 transition-all group"
-            style={{ border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.01)')}>
+            style={{ border: '1px solid var(--border-subtle)', background: 'transparent' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '12px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em' }}>
                 {cmd.label}
               </div>
-              <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', marginTop: '1px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '1px' }}>
                 {cmd.description}
               </div>
             </div>
-            <ArrowRight size={11} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}
+            <ArrowRight size={11} strokeWidth={1.5} style={{ color: 'var(--text-dim)', flexShrink: 0 }}
               className="transition-transform group-hover:translate-x-0.5 duration-150" />
           </button>
         ))}
@@ -280,7 +280,7 @@ function RunButton({ onClick, loading, label = 'Run', disabled = false }: { onCl
   return (
     <button onClick={onClick} disabled={loading || disabled}
       className="flex items-center gap-2 px-5 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-70 disabled:opacity-40"
-      style={{ border: '1px solid rgba(255,255,255,0.25)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+      style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
       {loading && <Loader2 size={10} className="animate-spin" />}
       {label}
     </button>
@@ -438,8 +438,8 @@ function TransferCaseForm({ cases, onDataRefresh }: FormProps) {
         </select>
       </Field>
       {selectedCase && (
-        <div style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)' }}>
-          Will transfer from <span style={{ color: '#fff' }}>{selectedCase.shop}</span> → <span style={{ color: '#fff' }}>{toShop}</span>
+        <div style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
+          Will transfer from <span style={{ color: 'var(--text-primary)' }}>{selectedCase.shop}</span> → <span style={{ color: 'var(--text-primary)' }}>{toShop}</span>
         </div>
       )}
       <div className="pt-2">
@@ -616,7 +616,7 @@ function ProcessReturnForm({ events, router, onClose }: FormProps) {
           {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
         </select>
       </Field>
-      <div style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', lineHeight: 1.7 }}>
+      <div style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', lineHeight: 1.7 }}>
         Opens the return processing flow where you can mark each case as returned OK, note damage, or report missing lights.
       </div>
       <div className="pt-2">

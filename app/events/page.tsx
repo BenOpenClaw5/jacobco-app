@@ -35,23 +35,23 @@ function DeleteConfirm({ event, onConfirm, onCancel, isDeleting }: {
       <div className="absolute inset-0" style={{ background: 'rgba(7,12,14,0.92)', backdropFilter: 'blur(8px)' }} onClick={onCancel} />
       <motion.div
         className="relative w-full max-w-xs p-8"
-        style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.08)' }}
         initial={{ scale: 0.97, y: 6 }} animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
       >
-        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+        <h3 className="text-base font-light tracking-[0.08em] mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
           Archive Event?
         </h3>
-        <p className="text-xs font-light mb-1" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <p className="text-xs font-light mb-1" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           This hides the event from this list but keeps it in calendar history.
         </p>
-        <p className="text-sm font-light mb-4" style={{ color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <p className="text-sm font-light mb-4" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           &quot;{event.name}&quot;
         </p>
-        <div className="h-px mb-5" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        <div className="h-px mb-5" style={{ background: 'var(--border-subtle)' }} />
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-2.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-            style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+            style={{ border: '1px solid var(--border-strong)', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={isDeleting}
@@ -106,29 +106,29 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
-      <div className="px-6 pt-10 pb-8" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="px-6 pt-10 pb-8" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.4em', textTransform: 'uppercase', fontWeight: 300, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.4em', textTransform: 'uppercase', fontWeight: 300, color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
             Production Board
           </div>
           <div className="flex items-end justify-between gap-4">
-            <h1 style={{ fontSize: '28px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
               Events
             </h1>
             <button
               onClick={() => setIsCreateOpen(true)}
               className="flex items-center gap-2 px-4 py-2 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+              style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}
             >
               <Plus size={11} strokeWidth={1.5} />
               New Event
             </button>
           </div>
           {!isLoading && (
-            <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', marginTop: '6px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginTop: '6px' }}>
               {events.length} active {events.length === 1 ? 'event' : 'events'}
             </p>
           )}
@@ -138,7 +138,7 @@ export default function EventsPage() {
       <main className="px-6 py-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-28">
-            <Loader2 size={18} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <Loader2 size={18} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
           </div>
         ) : events.length === 0 ? (
           <EmptyState onCreate={() => setIsCreateOpen(true)} />
@@ -170,16 +170,16 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <motion.div className="flex flex-col items-center justify-center py-24 text-center"
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-      <div className="w-12 h-px mb-8" style={{ background: 'rgba(255,255,255,0.08)' }} />
-      <h3 style={{ fontSize: '18px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="w-12 h-px mb-8" style={{ background: 'var(--border)' }} />
+      <h3 style={{ fontSize: '18px', fontWeight: 300, letterSpacing: '0.08em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
         No Events
       </h3>
-      <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', marginBottom: '32px', lineHeight: 1.8, maxWidth: '280px' }}>
+      <p style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginBottom: '32px', lineHeight: 1.8, maxWidth: '280px' }}>
         Create your first event to start tracking lighting cases through production stages.
       </p>
       <button onClick={onCreate}
         className="flex items-center gap-2.5 px-7 py-3 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity hover:opacity-60"
-        style={{ border: '1px solid rgba(255,255,255,0.4)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+        style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
         <Plus size={11} strokeWidth={1.5} />
         Create Event
       </button>
@@ -195,16 +195,16 @@ function EventListCard({ event, onArchive }: { event: Event; onArchive: () => vo
       <Link href={`/events/${event.id}`} className="block">
         <motion.div
           className="flex items-center justify-between py-5 px-0 relative"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderBottom: '1px solid var(--border-subtle)' }}
           whileHover={{ x: 2 }}
           transition={{ duration: 0.12 }}
         >
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-px transition-all duration-200 opacity-0 group-hover:opacity-100"
-            style={{ background: 'rgba(255,255,255,0.4)', height: '38%' }} />
+            style={{ background: 'var(--text-secondary)', height: '38%' }} />
 
           <div className="pl-3 min-w-0 flex-1">
             <div className="flex items-center gap-2.5 mb-1">
-              <h3 style={{ fontSize: '15px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em' }}
+              <h3 style={{ fontSize: '15px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em' }}
                 className="truncate">
                 {event.name}
               </h3>
@@ -216,17 +216,17 @@ function EventListCard({ event, onArchive }: { event: Event; onArchive: () => vo
             </div>
             <div className="flex items-center gap-4 flex-wrap">
               {event.location && (
-                <span className="flex items-center gap-1.5" style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-urbanist)' }}>
+                <span className="flex items-center gap-1.5" style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                   <MapPin size={10} strokeWidth={1.5} />{event.location}
                 </span>
               )}
               {event.event_start_date && (
-                <span className="flex items-center gap-1.5" style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-urbanist)' }}>
+                <span className="flex items-center gap-1.5" style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                   <Calendar size={10} strokeWidth={1.5} />{formatDate(event.event_start_date)}
                 </span>
               )}
               {event.load_by_date && (
-                <span style={{ fontSize: '9px', fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                <span style={{ fontSize: '9px', fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                   Load {formatDate(event.load_by_date)}
                 </span>
               )}

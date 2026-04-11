@@ -29,10 +29,10 @@ export default function ProgressBar({ cards }: ProgressBarProps) {
   return (
     <div className="space-y-3">
       {/* Track */}
-      <div className="relative h-px w-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+      <div className="relative h-px w-full" style={{ background: 'var(--border)' }}>
         <motion.div
           className="absolute inset-y-0 left-0"
-          style={{ background: '#ffffff' }}
+          style={{ background: 'var(--text-primary)' }}
           initial={{ width: '0%' }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -48,18 +48,18 @@ export default function ProgressBar({ cards }: ProgressBarProps) {
             <div key={stage} className="flex items-center gap-1.5">
               <div
                 className="w-1 h-1 rounded-full"
-                style={{ background: count > 0 ? sc.dot : 'rgba(255,255,255,0.12)' }}
+                style={{ background: count > 0 ? sc.dot : 'var(--border)' }}
               />
               <span
                 className="text-[10px] tracking-[0.18em] uppercase font-light"
                 style={{
-                  color: count > 0 ? sc.accent : 'rgba(255,255,255,0.2)',
+                  color: count > 0 ? sc.accent : 'var(--text-dim)',
                   fontFamily: 'var(--font-josefin)',
                 }}
               >
                 {sc.label}
                 {count > 0 && (
-                  <span style={{ color: 'rgba(255,255,255,0.3)', marginLeft: '4px' }}>{count}</span>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>{count}</span>
                 )}
               </span>
             </div>
@@ -67,7 +67,7 @@ export default function ProgressBar({ cards }: ProgressBarProps) {
         })}
         <span
           className="ml-auto text-[10px] font-light tracking-widest"
-          style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}
+          style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}
         >
           {Math.round(progress)}%
         </span>

@@ -64,32 +64,31 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: n
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.45, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.06 }}
-      whileHover={{ scale: 1.02 }}
+      className="card-interactive"
       style={{
-        border: '1px solid rgba(255,255,255,0.07)',
-        padding: '18px 16px',
-        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid var(--border)',
+        padding: '20px 18px',
+        background: 'var(--card)',
         cursor: 'pointer',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
-        transition: 'border-color 200ms ease, background 200ms ease',
+        gap: '12px',
       }}
     >
-      <Icon size={16} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
+      <Icon size={16} strokeWidth={1.5} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.7 }} />
       <div>
-        <div style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '4px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 300, letterSpacing: '0.08em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '5px' }}>
           {feature.label}
         </div>
-        <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+        <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', lineHeight: 1.5 }}>
           {feature.sub}
         </div>
       </div>
     </motion.div>
   );
 
-  return <Link href={feature.href} style={{ display: 'block' }}>{content}</Link>;
+  return <Link href={feature.href} style={{ display: 'block', height: '100%' }}>{content}</Link>;
 }
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
@@ -126,7 +125,8 @@ export default function LandingPage() {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.022)';
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      ctx.fillStyle = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.022)';
       const spacing = 40;
       for (let x = 0; x < canvas.width; x += spacing) {
         for (let y = 0; y < canvas.height; y += spacing) {
@@ -140,7 +140,7 @@ export default function LandingPage() {
       const cy = canvas.height / 2 + Math.cos(t * 0.00020) * canvas.height * 0.10;
       const r  = Math.max(canvas.width, canvas.height) * 0.6;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      grad.addColorStop(0, 'rgba(60,110,150,0.055)');
+      grad.addColorStop(0, isLight ? 'rgba(196,154,42,0.04)' : 'rgba(60,110,150,0.055)');
       grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -182,14 +182,14 @@ export default function LandingPage() {
             transition={{ duration: 0.4 }}
             style={{ marginBottom: '20px' }}
           >
-            <div style={{ width: '1px', height: '60px', background: 'rgba(255,255,255,0.08)', margin: '0 auto' }} />
+            <div style={{ width: '1px', height: '60px', background: 'var(--border)', margin: '0 auto' }} />
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontSize: '9px', letterSpacing: '0.55em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '28px' }}
+            style={{ fontSize: '9px', letterSpacing: '0.55em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '28px' }}
           >
             Jacob Co Creative
           </motion.div>
@@ -202,7 +202,7 @@ export default function LandingPage() {
               y:          { duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] },
               textShadow: { duration: 1.6, delay: GLOW_DELAY, ease: 'easeOut' },
             }}
-            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: '#ffffff', lineHeight: 1.05, marginBottom: 0 }}
+            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'var(--text-primary)', lineHeight: 1.05, marginBottom: 0 }}
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
           >
             Production
@@ -216,7 +216,7 @@ export default function LandingPage() {
               y:          { duration: 0.9, delay: 0.44, ease: [0.16, 1, 0.3, 1] },
               textShadow: { duration: 1.8, delay: GLOW_DELAY + 0.15, ease: 'easeOut' },
             }}
-            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', lineHeight: 1.05, marginBottom: '36px' }}
+            style={{ fontFamily: 'var(--font-josefin)', fontWeight: 100, letterSpacing: '0.08em', color: 'var(--text-muted)', lineHeight: 1.05, marginBottom: '36px' }}
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px]"
           >
             Operations
@@ -226,14 +226,14 @@ export default function LandingPage() {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.8, delay: 0.7 }}
-            style={{ width: '60px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '0 auto 28px' }}
+            style={{ width: '60px', height: '1px', background: 'var(--border)', margin: '0 auto 28px' }}
           />
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.9 }}
-            style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', letterSpacing: '0.04em', maxWidth: '340px', lineHeight: 1.7, marginBottom: '48px' }}
+            style={{ fontSize: '13px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', letterSpacing: '0.04em', maxWidth: '340px', lineHeight: 1.7, marginBottom: '48px' }}
           >
             Multi-location production management for Orlando &amp; Dallas
           </motion.p>
@@ -247,7 +247,7 @@ export default function LandingPage() {
             <Link
               href="/events"
               className="flex items-center gap-2.5 px-8 py-3.5 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity hover:opacity-70"
-              style={{ border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+              style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}
             >
               Open Board
               <ArrowRight size={11} strokeWidth={1.5} />
@@ -255,7 +255,7 @@ export default function LandingPage() {
             <button
               onClick={() => openPalette()}
               className="flex items-center gap-2 px-6 py-3.5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-              style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}
+              style={{ border: '1px solid var(--border)', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}
             >
               <Command size={11} strokeWidth={1.5} />
               Command
@@ -270,21 +270,21 @@ export default function LandingPage() {
             className="flex items-center gap-10 sm:gap-14"
           >
             <div className="text-center">
-              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
+              <div style={{ fontSize: '26px', fontWeight: 100, color: 'var(--accent)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, textShadow: '0 0 24px rgba(196,154,42,0.3)' }}>
                 2
               </div>
-              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
                 Shops
               </div>
             </div>
 
-            <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
+            <div style={{ width: '1px', height: '28px', background: 'var(--border)', flexShrink: 0 }} />
 
             <div className="text-center">
-              <div style={{ fontSize: '26px', fontWeight: 100, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1 }}>
+              <div style={{ fontSize: '26px', fontWeight: 100, color: 'var(--accent)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.04em', lineHeight: 1, textShadow: '0 0 24px rgba(196,154,42,0.3)' }}>
                 ∞
               </div>
-              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '6px' }}>
                 Destinations
               </div>
             </div>
@@ -293,9 +293,9 @@ export default function LandingPage() {
       </main>
 
       {/* Feature Grid */}
-      <section className="relative z-10 px-6 py-16" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <section className="relative z-10 px-6 py-16" style={{ background: 'var(--landing-bg)', borderTop: '1px solid var(--border-subtle)' }}>
         <div className="max-w-3xl mx-auto">
-          <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
             Quick Access
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -308,7 +308,7 @@ export default function LandingPage() {
 
       {/* Company Call & Receipts */}
       {callInfo && (
-        <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid var(--border-subtle)' }}>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -321,20 +321,20 @@ export default function LandingPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 px-5 py-3 transition-opacity hover:opacity-70"
-              style={{ border: callInfo.isLive ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.1)', background: callInfo.isLive ? 'rgba(34,197,94,0.06)' : 'transparent' }}
+              style={{ border: callInfo.isLive ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--border)', background: callInfo.isLive ? 'rgba(34,197,94,0.06)' : 'transparent' }}
             >
               {callInfo.isLive && (
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(34,197,94)', flexShrink: 0, animation: 'pulse-urgent 1.5s ease-in-out infinite' }} />
               )}
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 300, color: callInfo.isLive ? 'rgb(34,197,94)' : '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
+                <div style={{ fontSize: '11px', fontWeight: 300, color: callInfo.isLive ? 'rgb(34,197,94)' : 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
                   {callInfo.isLive ? 'Call is Live' : 'Company Call'}
                 </div>
-                <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                   {callInfo.isLive ? 'Click to join now' : `${callInfo.label} ${callInfo.sublabel}`}
                 </div>
               </div>
-              <ExternalLink size={11} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+              <ExternalLink size={11} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
             </a>
 
             <a
@@ -342,17 +342,17 @@ export default function LandingPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 px-5 py-3 transition-opacity hover:opacity-70"
-              style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ border: '1px solid var(--border)' }}
             >
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
+                <div style={{ fontSize: '11px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.06em' }}>
                   Receipts
                 </div>
-                <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                   Company expense drive
                 </div>
               </div>
-              <ExternalLink size={11} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+              <ExternalLink size={11} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
             </a>
           </div>
           </motion.div>
@@ -380,15 +380,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+      <section className="relative z-10 px-6 py-10" style={{ background: 'var(--landing-bg)', borderTop: '1px solid var(--border-subtle)' }}>
         <div className="max-w-3xl mx-auto flex items-center gap-6">
-          <Link href="/incidents" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
+          <Link href="/incidents" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
             Incident Reports
           </Link>
-          <Link href="/payroll" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
+          <Link href="/payroll" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
             Payroll
           </Link>
-          <Link href="/admin/payroll" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.1)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
+          <Link href="/admin/payroll" style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }} className="hover:opacity-60 transition-opacity">
             Admin
           </Link>
         </div>

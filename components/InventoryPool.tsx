@@ -28,18 +28,18 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
-        <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.25)' }} />
+      <div className="flex items-center gap-3 mb-5" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+        <div className="w-px h-3" style={{ background: 'var(--text-dim)' }} />
         <span
           className="text-[10px] font-light tracking-[0.28em] uppercase"
-          style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
+          style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
         >
           Inventory Pool
         </span>
         {cards.length > 0 && (
           <span
             className="text-[10px] font-light"
-            style={{ color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--font-urbanist)' }}
+            style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}
           >
             {cards.length} cases
           </span>
@@ -49,12 +49,12 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
       {cards.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center py-14"
-          style={{ border: '1px dashed rgba(255,255,255,0.05)', borderRadius: '2px' }}
+          style={{ border: '1px dashed var(--border-subtle)', borderRadius: '2px' }}
         >
-          <div className="w-6 h-px mb-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
+          <div className="w-6 h-px mb-4" style={{ background: 'var(--border)' }} />
           <p
             className="text-[10px] tracking-[0.25em] uppercase font-light"
-            style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}
+            style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}
           >
             All cases in staging
           </p>
@@ -68,7 +68,7 @@ export default function InventoryPool({ cards, onCardClick }: InventoryPoolProps
               <div key={key}>
                 <div
                   className="text-[9px] font-light tracking-[0.22em] uppercase mb-2"
-                  style={{ color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }}
+                  style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}
                 >
                   {label}
                 </div>

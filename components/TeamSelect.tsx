@@ -53,7 +53,7 @@ export default function TeamSelect({
       <div
         onClick={() => setIsOpen(v => !v)}
         style={{
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: '1px solid var(--border)',
           paddingBottom: '10px',
           cursor: 'pointer',
           minHeight: '34px',
@@ -68,7 +68,7 @@ export default function TeamSelect({
             fontFamily: 'var(--font-urbanist)',
             fontWeight: 200,
             fontSize: '14px',
-            color: 'rgba(255,255,255,0.2)',
+            color: 'var(--text-dim)',
             letterSpacing: '0.01em',
             lineHeight: '20px',
           }}>
@@ -83,20 +83,20 @@ export default function TeamSelect({
                 alignItems: 'center',
                 gap: '5px',
                 padding: '2px 7px',
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.13)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
                 fontFamily: 'var(--font-josefin)',
                 fontSize: '9px',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.75)',
+                color: 'var(--text-secondary)',
               }}
             >
               {name}
               <button
                 type="button"
                 onClick={e => removeChip(name, e)}
-                style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.35)', padding: 0 }}
+                style={{ display: 'flex', alignItems: 'center', color: 'var(--text-dim)', padding: 0 }}
               >
                 <X size={9} strokeWidth={2} />
               </button>
@@ -109,7 +109,7 @@ export default function TeamSelect({
           style={{
             marginLeft: 'auto',
             flexShrink: 0,
-            color: 'rgba(255,255,255,0.2)',
+            color: 'var(--text-dim)',
             transform: isOpen ? 'rotate(180deg)' : 'none',
             transition: 'transform 0.15s',
             marginTop: '4px',
@@ -126,8 +126,8 @@ export default function TeamSelect({
             left: 0,
             right: 0,
             zIndex: 200,
-            background: '#0c1317',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             maxHeight: '280px',
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
@@ -147,19 +147,19 @@ export default function TeamSelect({
                   width: '100%',
                   padding: '0 16px',
                   minHeight: '44px',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                  borderBottom: '1px solid var(--border-subtle)',
                   fontFamily: 'var(--font-josefin)',
                   fontSize: '12px',
                   letterSpacing: '0.08em',
-                  color: isSel ? '#ffffff' : 'rgba(255,255,255,0.45)',
-                  background: isSel ? 'rgba(255,255,255,0.05)' : 'transparent',
+                  color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                  background: isSel ? 'var(--surface)' : 'transparent',
                   textAlign: 'left',
                   transition: 'background 0.1s, color 0.1s',
                 }}
               >
                 {name}
                 {isSel && (
-                  <Check size={12} strokeWidth={2} style={{ color: 'rgba(255,255,255,0.55)', flexShrink: 0 }} />
+                  <Check size={12} strokeWidth={2} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 )}
               </button>
             );

@@ -44,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('jcc-theme')||localStorage.getItem('jc-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();` }} />
       </head>
       <body className="min-h-full antialiased">
+        <div className="grain-overlay" aria-hidden="true" />
         <SplashScreen />
         <ClientShell>{children}</ClientShell>
       </body>

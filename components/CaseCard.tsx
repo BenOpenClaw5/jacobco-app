@@ -64,7 +64,7 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
         </div>
         <div
           className={`font-light leading-none mt-1 tracking-wide ${compact ? 'text-sm' : 'text-base'}`}
-          style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}
+          style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}
         >
           {card.isCustom ? card.displayName : card.letter}
         </div>
@@ -72,12 +72,12 @@ export default function CaseCard({ card, onClick, compact = false }: CaseCardPro
         {(hasNotes || hasImages) && (
           <div className="flex items-center gap-1.5 mt-1.5">
             {hasNotes && (
-              <div className="w-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+              <div className="w-1 h-1 rounded-full" style={{ background: 'var(--text-dim)' }} />
             )}
             {hasImages && (
               <div className="flex items-center gap-1">
-                <div className="w-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
-                <span className="text-[9px] font-light" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                <div className="w-1 h-1 rounded-full" style={{ background: 'var(--text-dim)' }} />
+                <span className="text-[9px] font-light" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                   {card.images!.length}
                 </span>
               </div>

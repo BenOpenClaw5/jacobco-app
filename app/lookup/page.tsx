@@ -71,20 +71,20 @@ export default function LookupPage() {
   const showAll = !query.trim();
 
   return (
-    <motion.div {...pageAnim} className="min-h-screen" style={{ background: '#070c0e' }}>
+    <motion.div {...pageAnim} className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
-      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Case Lookup
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
           Where is this case?
         </h1>
 
         {/* Search input */}
-        <div className="flex items-center gap-3 max-w-lg" style={{ borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '10px' }}>
-          <Search size={14} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+        <div className="flex items-center gap-3 max-w-lg" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+          <Search size={14} strokeWidth={1.5} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
           <input
             ref={inputRef}
             value={query}
@@ -93,12 +93,12 @@ export default function LookupPage() {
             style={{
               flex: 1,
               background: 'transparent', border: 'none', outline: 'none',
-              color: '#ffffff', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '15px',
+              color: 'var(--text-primary)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '15px',
             }}
             className="placeholder:opacity-20"
           />
           {query && (
-            <button onClick={() => setQuery('')} style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)', fontSize: '9px' }}>
+            <button onClick={() => setQuery('')} style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', fontSize: '9px' }}>
               Clear
             </button>
           )}
@@ -108,30 +108,30 @@ export default function LookupPage() {
       <div className="px-5 py-6 max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
           </div>
         ) : showAll ? (
           <div>
-            <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
               {allCases.length} cases in system
             </div>
             <div className="space-y-px">
               {allCases.slice(0, 30).map(c => <CaseRow key={c.id} c={c} />)}
               {allCases.length > 30 && (
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '12px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '12px' }}>
                   Search to find specific cases…
                 </div>
               )}
             </div>
           </div>
         ) : results.length === 0 ? (
-          <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '16px' }}>
+          <div style={{ color: 'var(--text-dim)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '16px' }}>
             No cases match &quot;{query}&quot;
           </div>
         ) : (
           <AnimatePresence>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-px">
-              <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
                 {results.length} result{results.length !== 1 ? 's' : ''}
               </div>
               {results.map(c => <CaseRow key={c.id} c={c} />)}
@@ -146,11 +146,11 @@ export default function LookupPage() {
 function CaseRow({ c }: { c: CaseResult }) {
   const shopAccent = SHOP_ACCENT[c.shop ?? 'Orlando'];
   return (
-    <div className="flex items-center gap-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <div className="flex items-center gap-4 py-3.5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
       <div className="w-px self-stretch" style={{ background: shopAccent, minHeight: '20px', flexShrink: 0 }} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', color: '#ffffff', fontWeight: 300, letterSpacing: '0.04em' }}>
+          <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', color: 'var(--text-primary)', fontWeight: 300, letterSpacing: '0.04em' }}>
             {c.type} {c.letter}
           </span>
           <span style={{ fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: shopAccent, fontFamily: 'var(--font-josefin)' }}>
@@ -163,7 +163,7 @@ function CaseRow({ c }: { c: CaseResult }) {
               {c.event.name}
             </span>
             {c.stage && (
-              <span style={{ fontSize: '8px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+              <span style={{ fontSize: '8px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                 {c.stage}
               </span>
             )}
@@ -177,7 +177,7 @@ function CaseRow({ c }: { c: CaseResult }) {
       {c.event && (
         <Link href={`/events/${c.event.id}`}
           className="flex-shrink-0 flex items-center justify-center w-7 h-7 transition-opacity hover:opacity-60"
-          style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }}>
+          style={{ border: '1px solid var(--border)', color: 'var(--text-dim)' }}>
           <ArrowRight size={11} strokeWidth={1.5} />
         </Link>
       )}

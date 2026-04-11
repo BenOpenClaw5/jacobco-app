@@ -15,7 +15,7 @@ export default function StageColumn({ stage, cards, onCardClick }: StageColumnPr
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 mb-3" style={{ borderBottom: `1px solid rgba(255,255,255,0.07)` }}>
+      <div className="flex items-center justify-between pb-3 mb-3" style={{ borderBottom: `1px solid var(--border)` }}>
         <div className="flex items-center gap-2">
           <div className="w-px h-3" style={{ background: sc.accent }} />
           <span
@@ -28,7 +28,7 @@ export default function StageColumn({ stage, cards, onCardClick }: StageColumnPr
         {cards.length > 0 && (
           <span
             className="text-[10px] font-light"
-            style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}
+            style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}
           >
             {cards.length}
           </span>
@@ -39,11 +39,11 @@ export default function StageColumn({ stage, cards, onCardClick }: StageColumnPr
         {cards.length === 0 ? (
           <div
             className="flex-1 flex items-center justify-center min-h-14 rounded-sm"
-            style={{ border: '1px dashed rgba(255,255,255,0.05)' }}
+            style={{ border: '1px dashed var(--border-subtle)' }}
           >
             <span
               className="text-[9px] tracking-[0.2em] uppercase"
-              style={{ color: 'rgba(255,255,255,0.12)', fontFamily: 'var(--font-josefin)' }}
+              style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}
             >
               Empty
             </span>

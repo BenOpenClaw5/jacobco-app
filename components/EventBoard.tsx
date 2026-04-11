@@ -88,7 +88,7 @@ function CybertruckPanel({ assignedCount }: { assignedCount: number }) {
       : 'Use the trailer instead';
 
   const statusColor = isEmpty
-    ? 'rgba(255,255,255,0.25)'
+    ? 'var(--text-dim)'
     : fits
       ? 'rgba(120,200,140,0.9)'
       : 'rgba(220,165,60,0.9)';
@@ -231,36 +231,36 @@ export default function EventBoard({ eventId }: EventBoardProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#070c0e' }}>
-        <Loader2 size={18} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <Loader2 size={18} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#070c0e' }}>
-        <p className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>Event not found.</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <p className="text-sm font-light" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>Event not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Top nav */}
       <header
         className="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
         style={{
-          background: 'rgba(7,12,14,0.96)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          background: 'var(--nav-bg)',
+          borderBottom: '1px solid var(--nav-border)',
           backdropFilter: 'blur(16px)',
         }}
       >
         <div className="flex items-center gap-4">
           <Link href="/events" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
-            <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'var(--text-secondary)' }} />
           </Link>
-          <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
+          <div className="w-px h-4" style={{ background: 'var(--border)' }} />
           <Logo size="sm" asLink={false} />
         </div>
 
@@ -269,7 +269,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             type="button"
             onClick={() => router.push(`/return/${eventId}`)}
             className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
-            style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}
+            style={{ border: '1px solid var(--border)', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}
           >
             <RotateCcw size={10} strokeWidth={1.5} />
             <span className="hidden sm:inline">Return</span>
@@ -278,7 +278,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             type="button"
             onClick={() => setIsCustomModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.22em] uppercase font-light transition-opacity hover:opacity-50"
-            style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}
+            style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
           >
             <Plus size={10} strokeWidth={1.5} />
             <span className="hidden sm:inline">Custom</span>
@@ -287,7 +287,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       </header>
 
       {/* Event header */}
-      <div className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {/* Google Doc link */}
         {event.google_doc_url && (
           <a href={event.google_doc_url} target="_blank" rel="noopener noreferrer"
@@ -298,16 +298,16 @@ export default function EventBoard({ eventId }: EventBoardProps) {
           </a>
         )}
 
-        <div className="text-[9px] tracking-[0.3em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+        <div className="text-[9px] tracking-[0.3em] uppercase font-light mb-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
           Event
         </div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-light tracking-[0.04em]" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+            <h1 className="text-2xl font-light tracking-[0.04em]" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
               {event.name}
             </h1>
             {event.primary_shop && (
-              <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: SHOP_ACCENT[event.primary_shop] ?? 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+              <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: SHOP_ACCENT[event.primary_shop] ?? 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                 {event.primary_shop}
               </span>
             )}
@@ -320,7 +320,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
                 <div style={{ fontSize: '22px', fontWeight: 100, color: READINESS_COLOR(score), fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
                   {score}%
                 </div>
-                <div style={{ fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '2px' }}>
+                <div style={{ fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '2px' }}>
                   Ready
                 </div>
               </div>
@@ -331,17 +331,17 @@ export default function EventBoard({ eventId }: EventBoardProps) {
         {(event.location || event.event_start_date || event.load_by_date) && (
           <div className="flex items-center gap-4 mt-2 flex-wrap">
             {event.location && (
-              <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+              <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
                 <MapPin size={10} strokeWidth={1.5} />{event.location}
               </span>
             )}
             {event.event_start_date && (
-              <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+              <span className="flex items-center gap-1.5 text-xs font-light" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
                 <Calendar size={10} strokeWidth={1.5} />{formatDate(event.event_start_date)}
               </span>
             )}
             {event.load_by_date && (
-              <span className="text-[9px] tracking-[0.15em] uppercase font-light" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+              <span className="text-[9px] tracking-[0.15em] uppercase font-light" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                 Load {formatDate(event.load_by_date)}
               </span>
             )}
@@ -351,7 +351,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
         {/* Team + Cybertruck (side by side on desktop, stacked on mobile) */}
         <div className="mt-5 flex flex-col lg:flex-row lg:items-start gap-4">
           <div className="flex-1">
-            <div className="text-[9px] tracking-[0.28em] uppercase font-light mb-2" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+            <div className="text-[9px] tracking-[0.28em] uppercase font-light mb-2" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
               Team
             </div>
             <TeamSelect selected={teamMembers} onChange={handleTeamChange} placeholder="Assign team members..." />
@@ -370,7 +370,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
       {/* Mobile tabs */}
       <div
         className="lg:hidden sticky z-20 px-5 py-3 overflow-x-auto"
-        style={{ top: '57px', background: 'rgba(7,12,14,0.97)', borderBottom: '1px solid rgba(255,255,255,0.04)', backdropFilter: 'blur(12px)' }}
+        style={{ top: '57px', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border-subtle)', backdropFilter: 'blur(12px)' }}
       >
         <div className="flex gap-1 min-w-max">
           {MOBILE_TABS.map(tab => {
@@ -384,14 +384,14 @@ export default function EventBoard({ eventId }: EventBoardProps) {
                 className="px-3.5 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-all whitespace-nowrap flex items-center gap-1.5"
                 style={{
                   fontFamily: 'var(--font-josefin)',
-                  color: isActive ? (sc ? sc.accent : 'rgba(255,255,255,0.7)') : 'rgba(255,255,255,0.22)',
-                  borderBottom: isActive ? `1px solid ${sc ? sc.accent : 'rgba(255,255,255,0.4)'}` : '1px solid transparent',
+                  color: isActive ? (sc ? sc.accent : 'var(--text-secondary)') : 'var(--text-dim)',
+                  borderBottom: isActive ? `1px solid ${sc ? sc.accent : 'var(--border-strong)'}` : '1px solid transparent',
                   paddingBottom: '9px',
                 }}
               >
                 {tab.label}
                 {count > 0 && (
-                  <span style={{ color: isActive ? (sc ? sc.accent : 'rgba(255,255,255,0.4)') : 'rgba(255,255,255,0.15)' }}>
+                  <span style={{ color: isActive ? (sc ? sc.accent : 'var(--text-secondary)') : 'var(--text-dim)' }}>
                     {count}
                   </span>
                 )}
@@ -417,7 +417,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
                 minHeight: '48px',
                 padding: '12px 0',
                 marginBottom: '12px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--border)',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -426,7 +426,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
             >
               <div style={{
                 width: 18, height: 18, flexShrink: 0,
-                border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)'}`,
+                border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'var(--border)'}`,
                 background: quickInvoiceMode ? 'var(--accent)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 150ms ease',
@@ -465,7 +465,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
               <StageColumn key={stage} stage={stage} cards={stageCards(stage)} onCardClick={c => { setSelectedCard(c); setIsSheetOpen(true); }} />
             ))}
           </div>
-          <div className="pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
             {/* Quick Invoice Mode toggle */}
             <div className="flex items-center gap-3 mb-4">
               <button
@@ -475,7 +475,7 @@ export default function EventBoard({ eventId }: EventBoardProps) {
               >
                 <div style={{
                   width: 14, height: 14,
-                  border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'rgba(255,255,255,0.2)'}`,
+                  border: `1px solid ${quickInvoiceMode ? 'var(--accent)' : 'var(--border)'}`,
                   background: quickInvoiceMode ? 'var(--accent)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 150ms ease',

@@ -57,16 +57,16 @@ export default function IncidentsPage() {
   const unresolvedCount = incidents.filter(i => !i.resolved).length;
 
   return (
-    <motion.div {...pageAnim} className="min-h-screen" style={{ background: '#070c0e' }}>
+    <motion.div {...pageAnim} className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
-      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Return Processing
         </div>
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
               Incidents
             </h1>
             {!loading && unresolvedCount > 0 && (
@@ -81,8 +81,8 @@ export default function IncidentsPage() {
                 className="px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase font-light transition-all"
                 style={{
                   fontFamily: 'var(--font-josefin)',
-                  border: filter === f ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.1)',
-                  color: filter === f ? '#ffffff' : 'rgba(255,255,255,0.25)',
+                  border: filter === f ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                  color: filter === f ? 'var(--text-primary)' : 'var(--text-dim)',
                 }}>
                 {f === 'unresolved' ? 'Open' : 'All'}
               </button>
@@ -94,11 +94,11 @@ export default function IncidentsPage() {
       <div className="px-5 py-6 max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
           </div>
         ) : displayed.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ color: 'rgba(255,255,255,0.2)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '24px' }}>
+            style={{ color: 'var(--text-dim)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200, paddingTop: '24px' }}>
             {filter === 'unresolved' ? 'No open incidents.' : 'No incidents recorded.'}
           </motion.div>
         ) : (
@@ -109,7 +109,7 @@ export default function IncidentsPage() {
               return (
                 <div key={incident.id}
                   style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    borderBottom: '1px solid var(--border-subtle)',
                     padding: '16px 0',
                     opacity: incident.resolved ? 0.45 : 1,
                   }}>
@@ -117,7 +117,7 @@ export default function IncidentsPage() {
                     <Icon size={13} strokeWidth={1.5} style={{ color: meta.color, flexShrink: 0, marginTop: '2px' }} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', color: '#ffffff', fontWeight: 300 }}>
+                        <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', color: 'var(--text-primary)', fontWeight: 300 }}>
                           {incident.inventory_case
                             ? `${incident.inventory_case.type} ${incident.inventory_case.letter}`
                             : 'Unknown Case'}
@@ -141,11 +141,11 @@ export default function IncidentsPage() {
                           </Link>
                         )}
                         {incident.inventory_case?.shop && (
-                          <span style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                             {incident.inventory_case.shop}
                           </span>
                         )}
-                        <span style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                           {new Date(incident.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
@@ -156,7 +156,7 @@ export default function IncidentsPage() {
                         </div>
                       )}
                       {incident.note && (
-                        <div style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)', marginTop: '4px', lineHeight: 1.6 }}>
+                        <div style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '4px', lineHeight: 1.6 }}>
                           {incident.note}
                         </div>
                       )}

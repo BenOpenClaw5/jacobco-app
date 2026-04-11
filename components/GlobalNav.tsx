@@ -78,11 +78,11 @@ export default function GlobalNav() {
   const isLight = theme === 'light';
   const activeStyle = {
     color: 'var(--text-primary)',
-    borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)'}`,
+    background: 'rgba(196,154,42,0.1)',
+    borderRadius: '4px',
   };
   const inactiveStyle = {
     color: 'var(--text-muted)',
-    borderBottom: '1px solid transparent',
   };
 
   return (
@@ -92,8 +92,9 @@ export default function GlobalNav() {
         style={{
           background: 'var(--nav-bg)',
           borderBottom: '1px solid var(--nav-border)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          boxShadow: '0 1px 0 rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}
       >
         <div className="flex items-center justify-between px-5 py-3.5">

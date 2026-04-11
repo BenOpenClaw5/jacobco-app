@@ -69,8 +69,8 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
   const fieldStyle = {
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-    color: '#ffffff',
+    borderBottom: '1px solid var(--border)',
+    color: 'var(--text-primary)',
     borderRadius: 0,
     fontFamily: 'var(--font-urbanist)',
     fontWeight: 200,
@@ -94,7 +94,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
           <motion.div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             <motion.div
               className="w-full sm:max-w-md overflow-y-auto max-h-[92vh]"
-              style={{ background: '#0c1317', borderTop: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
@@ -102,24 +102,24 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
             >
               {/* Drag line */}
               <div className="flex justify-center pt-4 pb-1 sm:hidden">
-                <div className="w-8 h-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <div className="w-8 h-px" style={{ background: 'var(--border-strong)' }} />
               </div>
 
               <div className="flex items-center justify-between px-7 py-6">
                 <div>
-                  <div className="text-[9px] tracking-[0.3em] uppercase font-light mb-1.5" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <div className="text-[9px] tracking-[0.3em] uppercase font-light mb-1.5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Jacob Co
                   </div>
-                  <h2 className="text-xl font-light tracking-[0.08em]" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+                  <h2 className="text-xl font-light tracking-[0.08em]" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
                     New Event
                   </h2>
                 </div>
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <X size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid var(--border)' }}>
+                  <X size={13} style={{ color: 'var(--text-secondary)' }} />
                 </button>
               </div>
 
-              <div className="h-px mx-7" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              <div className="h-px mx-7" style={{ background: 'var(--border)' }} />
 
               <form onSubmit={handleSubmit} className="px-7 pt-6 pb-8 space-y-5">
                 {[
@@ -127,7 +127,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                   { label: 'Location', value: location, set: setLocation, placeholder: 'Venue or address' },
                 ].map(({ label, value, set, placeholder, required }) => (
                   <div key={label}>
-                    <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                    <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                       {label}{required && ' *'}
                     </label>
                     <input
@@ -142,7 +142,7 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                 ))}
 
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Shop
                   </label>
                   <div className="flex gap-2">
@@ -151,8 +151,8 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                         className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-all"
                         style={{
                           fontFamily: 'var(--font-josefin)',
-                          border: shop === s ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                          color: shop === s ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                          border: shop === s ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                          color: shop === s ? 'var(--text-primary)' : 'var(--text-muted)',
                         }}>
                         {s}
                       </button>
@@ -166,34 +166,34 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                     { label: 'Event End', value: eventEndDate, set: setEventEndDate },
                   ].map(({ label, value, set }) => (
                     <div key={label}>
-                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                      <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                         {label}
                       </label>
-                      <input type="date" value={value} onChange={e => set(e.target.value)} style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                      <input type="date" value={value} onChange={e => set(e.target.value)} style={{ ...fieldStyle, colorScheme: 'light dark' }} className="outline-none" />
                     </div>
                   ))}
                 </div>
 
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Load by Date
                   </label>
-                  <input type="date" value={loadByDate} onChange={e => setLoadByDate(e.target.value)} style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                  <input type="date" value={loadByDate} onChange={e => setLoadByDate(e.target.value)} style={{ ...fieldStyle, colorScheme: 'light dark' }} className="outline-none" />
                 </div>
 
                 {/* Transport — Drop-off */}
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Drop-off
                   </label>
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Time</div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Time</div>
                       <input type="datetime-local" value={dropoffTime} onChange={e => setDropoffTime(e.target.value)}
-                        style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                        style={{ ...fieldStyle, colorScheme: 'light dark' }} className="outline-none" />
                     </div>
                     <div>
-                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
                       <input value={dropoffDriver} onChange={e => setDropoffDriver(e.target.value)}
                         placeholder="Driver name" style={fieldStyle} className="outline-none placeholder:opacity-20" />
                     </div>
@@ -202,17 +202,17 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
 
                 {/* Transport — Pick-up */}
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Pick-up
                   </label>
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Time</div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Time</div>
                       <input type="datetime-local" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
-                        style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+                        style={{ ...fieldStyle, colorScheme: 'light dark' }} className="outline-none" />
                     </div>
                     <div>
-                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
+                      <div className="text-[8px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Driver</div>
                       <input value={pickupDriver} onChange={e => setPickupDriver(e.target.value)}
                         placeholder="Driver name" style={fieldStyle} className="outline-none placeholder:opacity-20" />
                     </div>
@@ -220,16 +220,16 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                 </div>
 
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Notes
                   </label>
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Any notes..."
                     className="w-full resize-none outline-none placeholder:opacity-20 text-sm"
-                    style={{ ...fieldStyle, borderBottom: '1px solid rgba(255,255,255,0.1)' }} />
+                    style={{ ...fieldStyle, borderBottom: '1px solid var(--border)' }} />
                 </div>
 
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Team
                   </label>
                   <TeamSelect selected={teamMembers} onChange={setTeamMembers} openUp />
@@ -243,8 +243,8 @@ export default function CreateEventModal({ isOpen, onClose, onCreated }: CreateE
                     disabled={isSubmitting}
                     className="w-full py-3.5 text-[10px] tracking-[0.3em] uppercase font-light flex items-center justify-center gap-2 transition-opacity"
                     style={{
-                      border: '1px solid rgba(255,255,255,0.5)',
-                      color: isSubmitting ? 'rgba(255,255,255,0.3)' : '#ffffff',
+                      border: '1px solid var(--border-strong)',
+                      color: isSubmitting ? 'var(--text-muted)' : 'var(--text-primary)',
                       fontFamily: 'var(--font-josefin)',
                       opacity: isSubmitting ? 0.5 : 1,
                     }}

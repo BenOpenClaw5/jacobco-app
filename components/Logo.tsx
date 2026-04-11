@@ -19,24 +19,24 @@ export default function Logo({ size = 'md', asLink = true }: LogoProps) {
   const content = (
     <div className={`flex items-center ${c.gap}`}>
       {/* Geometric mark — two interlocked thin lines forming a J/C crosshair */}
-      <svg width={c.markSize} height={c.markSize} viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-        <rect x="1" y="11.5" width="22" height="1" fill="white" opacity="0.9" />
-        <rect x="11.5" y="1" width="1" height="22" fill="white" opacity="0.9" />
-        <circle cx="12" cy="12" r="3.5" fill="none" stroke="white" strokeWidth="0.8" opacity="0.7" />
-        <circle cx="12" cy="12" r="1" fill="white" opacity="0.9" />
+      <svg width={c.markSize} height={c.markSize} viewBox="0 0 24 24" fill="none" className="flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
+        <rect x="1" y="11.5" width="22" height="1" fill="currentColor" opacity="0.9" />
+        <rect x="11.5" y="1" width="1" height="22" fill="currentColor" opacity="0.9" />
+        <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.7" />
+        <circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.9" />
       </svg>
 
       {/* Wordmark */}
       <div className="flex flex-col justify-center">
         <span
           className={`${c.wordmark} font-light tracking-[0.25em] uppercase leading-none`}
-          style={{ fontFamily: 'var(--font-josefin)', color: '#ffffff' }}
+          style={{ fontFamily: 'var(--font-josefin)', color: 'var(--text-primary)' }}
         >
           Jacob Co
         </span>
         <span
           className={`${c.sub} tracking-[0.3em] uppercase leading-none mt-1`}
-          style={{ color: 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
+          style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}
         >
           Creative
         </span>

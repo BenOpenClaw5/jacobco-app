@@ -88,15 +88,15 @@ function Step1Form({ data, onChange, onNext }: {
 }) {
   const fieldStyle: React.CSSProperties = {
     background: 'transparent', border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-    color: '#ffffff', borderRadius: 0,
+    borderBottom: '1px solid var(--border)',
+    color: 'var(--text-primary)', borderRadius: 0,
     fontFamily: 'var(--font-urbanist)', fontWeight: 200,
     fontSize: '14px', padding: '0 0 10px 0', width: '100%', outline: 'none',
   };
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '9px', letterSpacing: '0.28em',
     textTransform: 'uppercase', fontWeight: 300,
-    color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)', marginBottom: '10px',
+    color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', marginBottom: '10px',
   };
 
   const canProceed = data.clientName.trim() && data.eventName.trim() && data.startDate;
@@ -130,7 +130,7 @@ function Step1Form({ data, onChange, onNext }: {
           <div key={f.key}>
             <label style={labelStyle}>{f.label}</label>
             <input type="date" value={f.value} onChange={e => onChange({ [f.key]: e.target.value })}
-              style={{ ...fieldStyle, colorScheme: 'dark' }} className="outline-none" />
+              style={{ ...fieldStyle, colorScheme: 'light dark' }} className="outline-none" />
           </div>
         ))}
       </div>
@@ -147,12 +147,12 @@ function Step1Form({ data, onChange, onNext }: {
             style={{ ...fieldStyle, width: '80px' }}
             className="outline-none"
           />
-          <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)' }}>
+          <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
             billing day{data.billingDays !== 1 ? 's' : ''}
           </span>
         </div>
         {data.startDate && data.endDate && (
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', marginTop: '6px', fontWeight: 200 }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '6px', fontWeight: 200 }}>
             Event span: {daysBetween(data.startDate, data.endDate)} days · Billing: {data.billingDays} day{data.billingDays !== 1 ? 's' : ''}
           </div>
         )}
@@ -172,8 +172,8 @@ function Step1Form({ data, onChange, onNext }: {
               className="px-3 py-1.5 text-[9px] tracking-[0.15em] uppercase font-light transition-all"
               style={{
                 fontFamily: 'var(--font-josefin)',
-                border: data.eventType === t ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                color: data.eventType === t ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                border: data.eventType === t ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                color: data.eventType === t ? 'var(--text-primary)' : 'var(--text-muted)',
               }}>
               {t}
             </button>
@@ -184,7 +184,7 @@ function Step1Form({ data, onChange, onNext }: {
       <div>
         <label style={labelStyle}>Budget</label>
         <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 0, bottom: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '14px' }}>$</span>
+          <span style={{ position: 'absolute', left: 0, bottom: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '14px' }}>$</span>
           <input type="number" value={data.budget} onChange={e => onChange({ budget: e.target.value })}
             placeholder="0" style={{ ...fieldStyle, paddingLeft: '16px' }} className="outline-none placeholder:opacity-20" />
         </div>
@@ -198,8 +198,8 @@ function Step1Form({ data, onChange, onNext }: {
               className="flex-1 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-all"
               style={{
                 fontFamily: 'var(--font-josefin)',
-                border: data.shop === s ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                color: data.shop === s ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                border: data.shop === s ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                color: data.shop === s ? 'var(--text-primary)' : 'var(--text-muted)',
               }}>
               {s}
             </button>
@@ -212,7 +212,7 @@ function Step1Form({ data, onChange, onNext }: {
         <textarea value={data.notes} onChange={e => onChange({ notes: e.target.value })} rows={2}
           placeholder="Additional details..."
           className="w-full resize-none outline-none placeholder:opacity-20 text-sm"
-          style={{ ...fieldStyle, borderBottom: '1px solid rgba(255,255,255,0.1)' }} />
+          style={{ ...fieldStyle, borderBottom: '1px solid var(--border)' }} />
       </div>
 
       <div className="pt-2">
@@ -221,7 +221,7 @@ function Step1Form({ data, onChange, onNext }: {
           disabled={!canProceed}
           className="w-full py-3.5 text-[10px] tracking-[0.3em] uppercase font-light transition-opacity"
           style={{
-            border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff',
+            border: '1px solid var(--border-strong)', color: 'var(--text-primary)',
             fontFamily: 'var(--font-josefin)', opacity: canProceed ? 1 : 0.35,
           }}
         >
@@ -250,25 +250,25 @@ function BudgetTracker({ budget, quoted }: { budget: number; quoted: number }) {
   if (budget <= 0) return null;
 
   return (
-    <div style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.07)', padding: '20px', marginBottom: '24px' }}>
-      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', marginBottom: '24px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
         Budget
       </div>
       <div className="flex items-baseline gap-4 mb-4">
         <div>
-          <div style={{ fontSize: '26px', fontWeight: 100, color: overBudget ? 'rgba(220,80,70,0.9)' : '#ffffff', fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
+          <div style={{ fontSize: '26px', fontWeight: 100, color: overBudget ? 'rgba(220,80,70,0.9)' : 'var(--text-primary)', fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
             ${quoted.toLocaleString()}
           </div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '4px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '4px' }}>
             Quoted
           </div>
         </div>
-        <div style={{ fontSize: '14px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>/</div>
+        <div style={{ fontSize: '14px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>/</div>
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 200, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
+          <div style={{ fontSize: '18px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', lineHeight: 1 }}>
             ${budget.toLocaleString()}
           </div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginTop: '4px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginTop: '4px' }}>
             Budget
           </div>
         </div>
@@ -278,14 +278,14 @@ function BudgetTracker({ budget, quoted }: { budget: number; quoted: number }) {
           </div>
         )}
       </div>
-      <div style={{ height: '3px', background: 'rgba(255,255,255,0.07)', borderRadius: '2px', overflow: 'hidden' }}>
+      <div style={{ height: '3px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, background: barColor, borderRadius: '2px', transition: 'width 0.3s ease, background 0.3s' }} />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-        <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }}>
+        <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
           ${Math.max(0, budget - quoted).toLocaleString()} remaining
         </span>
-        <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: overBudget ? 'rgba(220,80,70,0.7)' : 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-josefin)' }}>
+        <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: overBudget ? 'rgba(220,80,70,0.7)' : 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
           {Math.round(pct)}%
         </span>
       </div>
@@ -354,28 +354,28 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
 
       {/* Quote line items */}
       {Object.keys(selection).length > 0 && (
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '16px 20px', marginBottom: '24px' }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border-subtle)', padding: '16px 20px', marginBottom: '24px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '12px' }}>
             Quote Breakdown
           </div>
           {Object.entries(selection).map(([type, sel]) => {
             const subtotal = sel.lightCount * sel.pricePerLight * days;
             return (
-              <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-urbanist)' }}>
+              <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
                   {type === 'Haze'
                     ? `Haze Machines × ${days}d`
                     : `${type}: ${sel.lightCount} lights × $${sel.pricePerLight}/light × ${days}d`}
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', marginLeft: '16px', flexShrink: 0 }}>
+                <span style={{ fontSize: '13px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginLeft: '16px', flexShrink: 0 }}>
                   ${subtotal.toLocaleString()}
                 </span>
               </div>
             );
           })}
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', marginTop: '4px' }}>
-            <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>Total</span>
-            <span style={{ fontSize: '18px', fontWeight: 200, color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>${totalQuoted.toLocaleString()}</span>
+            <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>Total</span>
+            <span style={{ fontSize: '18px', fontWeight: 200, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>${totalQuoted.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -383,7 +383,7 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
       {/* Available types */}
       <div className="space-y-4 max-w-lg">
         {availableTypes.length === 0 && (
-          <div style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)', paddingTop: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', paddingTop: '16px' }}>
             No equipment available for these dates.
           </div>
         )}
@@ -410,7 +410,7 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
                 }}
                 style={{
                   width: '100%', textAlign: 'left',
-                  background: hazeOn ? 'rgba(196,154,42,0.08)' : '#0c1317',
+                  background: hazeOn ? 'rgba(196,154,42,0.08)' : 'var(--surface)',
                   border: hazeOn ? '1px solid rgba(196,154,42,0.4)' : '1px solid rgba(255,255,255,0.07)',
                   padding: '18px 20px',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -418,10 +418,10 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 300, color: hazeOn ? 'rgba(196,154,42,0.9)' : '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 300, color: hazeOn ? 'rgba(196,154,42,0.9)' : 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.05em' }}>
                     Haze Machines
                   </div>
-                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
                     {cases.length} machine{cases.length !== 1 ? 's' : ''} available · ${pricePerLight}/day
                   </div>
                 </div>
@@ -433,13 +433,13 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
                   )}
                   <div style={{
                     width: '36px', height: '20px', borderRadius: '10px',
-                    background: hazeOn ? 'rgba(196,154,42,0.5)' : 'rgba(255,255,255,0.08)',
+                    background: hazeOn ? 'rgba(196,154,42,0.5)' : 'var(--border)',
                     position: 'relative', transition: 'background 0.2s', flexShrink: 0,
                   }}>
                     <div style={{
                       position: 'absolute', top: '3px', left: hazeOn ? '19px' : '3px',
                       width: '14px', height: '14px', borderRadius: '50%',
-                      background: hazeOn ? 'rgba(196,154,42,0.95)' : 'rgba(255,255,255,0.3)',
+                      background: hazeOn ? 'rgba(196,154,42,0.95)' : 'var(--text-muted)',
                       transition: 'left 0.2s, background 0.2s',
                     }} />
                   </div>
@@ -449,13 +449,13 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
           }
 
           return (
-            <div key={type} style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.07)', padding: '18px 20px' }}>
+            <div key={type} style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '18px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.05em' }}>
                     {type}
                   </div>
-                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', marginTop: '3px' }}>
                     {cases.length} cases · {totalLights} lights available · ${pricePerLight}/light/day
                   </div>
                 </div>
@@ -473,7 +473,7 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(type, current - 1, totalLights)}
-                  style={{ width: '32px', height: '32px', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px', fontWeight: 100 }}
+                  style={{ width: '32px', height: '32px', border: '1px solid var(--border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px', fontWeight: 100 }}
                 >
                   −
                 </button>
@@ -484,21 +484,21 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
                     max={totalLights}
                     value={current}
                     onChange={e => handleQuantityChange(type, parseInt(e.target.value), totalLights)}
-                    style={{ width: '100%', accentColor: 'rgba(255,255,255,0.6)' }}
+                    style={{ width: '100%', accentColor: 'var(--text-muted)' }}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(type, current + 1, totalLights)}
-                  style={{ width: '32px', height: '32px', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px', fontWeight: 100 }}
+                  style={{ width: '32px', height: '32px', border: '1px solid var(--border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px', fontWeight: 100 }}
                 >
                   +
                 </button>
                 <div style={{ minWidth: '64px', textAlign: 'right' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 200, color: current > 0 ? '#ffffff' : 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 200, color: current > 0 ? 'var(--text-primary)' : 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
                     {current}
                   </span>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', marginLeft: '4px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginLeft: '4px' }}>
                     lights
                   </span>
                 </div>
@@ -511,11 +511,11 @@ function Step2Equipment({ step1, allCases, unavailableIds, selection, onChangeSe
       {/* Navigation */}
       <div className="flex gap-3 max-w-lg mt-8">
         <button onClick={onBack} className="flex-1 py-3 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-          style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+          style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontFamily: 'var(--font-josefin)' }}>
           ← Back
         </button>
         <button onClick={onNext} className="flex-1 py-3 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity"
-          style={{ border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
           Review Quote →
         </button>
       </div>
@@ -537,16 +537,16 @@ function Step3Summary({ step1, selection, days, totalPrice, onBack, onSaveQuote,
 }) {
   const labelStyle: React.CSSProperties = {
     fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase',
-    fontWeight: 300, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)', marginBottom: '5px',
+    fontWeight: 300, color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)', marginBottom: '5px',
   };
   const valueStyle: React.CSSProperties = {
-    fontSize: '14px', fontWeight: 200, color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-urbanist)',
+    fontSize: '14px', fontWeight: 200, color: 'var(--text-secondary)', fontFamily: 'var(--font-urbanist)',
   };
 
   return (
     <div className="max-w-lg space-y-6">
-      <div style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.07)', padding: '24px' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '24px' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
           Client Details
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -575,37 +575,37 @@ function Step3Summary({ step1, selection, days, totalPrice, onBack, onSaveQuote,
           </div>}
         </div>
         {step1.notes && (
-          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
             <div style={labelStyle}>Notes</div>
             <div style={{ ...valueStyle, fontSize: '13px', fontStyle: 'italic' }}>{step1.notes}</div>
           </div>
         )}
       </div>
 
-      <div style={{ background: '#0c1317', border: '1px solid rgba(255,255,255,0.07)', padding: '24px' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '24px' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '16px' }}>
           Equipment & Pricing
         </div>
         {Object.keys(selection).length === 0 ? (
-          <div style={{ fontSize: '13px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>No equipment selected.</div>
+          <div style={{ fontSize: '13px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>No equipment selected.</div>
         ) : (
           <div>
             {Object.entries(selection).map(([type, sel]) => {
               const subtotal = sel.lightCount * sel.pricePerLight * days;
               return (
-                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-urbanist)' }}>
+                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
                     {type}: {sel.lightCount} lights × ${sel.pricePerLight} × {days}d
                   </span>
-                  <span style={{ fontSize: '14px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', flexShrink: 0, marginLeft: '16px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', flexShrink: 0, marginLeft: '16px' }}>
                     ${subtotal.toLocaleString()}
                   </span>
                 </div>
               );
             })}
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '14px', marginTop: '4px' }}>
-              <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-josefin)' }}>Total</span>
-              <span style={{ fontSize: '22px', fontWeight: 200, color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>${totalPrice.toLocaleString()}</span>
+              <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>Total</span>
+              <span style={{ fontSize: '22px', fontWeight: 200, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>${totalPrice.toLocaleString()}</span>
             </div>
           </div>
         )}
@@ -613,7 +613,7 @@ function Step3Summary({ step1, selection, days, totalPrice, onBack, onSaveQuote,
 
       <div className="flex gap-3">
         <button onClick={onBack} className="py-3 px-5 text-[10px] tracking-[0.25em] uppercase font-light transition-opacity hover:opacity-60"
-          style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-josefin)' }}>
+          style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontFamily: 'var(--font-josefin)' }}>
           ← Back
         </button>
         <button onClick={onSaveQuote} disabled={isSaving}
@@ -624,7 +624,7 @@ function Step3Summary({ step1, selection, days, totalPrice, onBack, onSaveQuote,
         </button>
         <button onClick={onConfirmBooking} disabled={isSaving}
           className="flex-1 py-3 text-[10px] tracking-[0.25em] uppercase font-light flex items-center justify-center gap-2 transition-opacity"
-          style={{ border: '1px solid rgba(255,255,255,0.5)', color: '#ffffff', fontFamily: 'var(--font-josefin)', opacity: isSaving ? 0.5 : 1 }}>
+          style={{ border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', opacity: isSaving ? 0.5 : 1 }}>
           {isSaving && <Loader2 size={11} className="animate-spin" />}
           Confirm Booking
         </button>
@@ -664,11 +664,11 @@ function BookingList({ onNew }: { onNew: () => void }) {
               style={{
                 fontFamily: 'var(--font-josefin)',
                 border: statusFilter === s
-                  ? `1px solid ${config?.color ?? 'rgba(255,255,255,0.4)'}`
-                  : '1px solid rgba(255,255,255,0.1)',
+                  ? `1px solid ${config?.color ?? 'var(--border-strong)'}`
+                  : '1px solid var(--border)',
                 color: statusFilter === s
-                  ? (config?.color ?? '#ffffff')
-                  : 'rgba(255,255,255,0.3)',
+                  ? (config?.color ?? 'var(--text-primary)')
+                  : 'var(--text-muted)',
               }}>
               {s === 'all' ? 'All' : config?.label ?? s}
             </button>
@@ -678,10 +678,10 @@ function BookingList({ onNew }: { onNew: () => void }) {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', paddingTop: '48px', color: 'rgba(255,255,255,0.2)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
+        <div style={{ textAlign: 'center', paddingTop: '48px', color: 'var(--text-dim)', fontSize: '13px', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>
           No bookings found.
         </div>
       ) : (
@@ -689,11 +689,11 @@ function BookingList({ onNew }: { onNew: () => void }) {
           {filtered.map(b => {
             const cfg = STATUS_CONFIG[b.status];
             return (
-              <div key={b.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '16px 0' }}>
+              <div key={b.id} style={{ borderBottom: '1px solid var(--border-subtle)', padding: '16px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                   <div className="min-w-0 flex-1">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 300, color: '#ffffff', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
+                      <span style={{ fontSize: '15px', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', letterSpacing: '0.03em' }}>
                         {b.event_name}
                       </span>
                       <span className="text-[9px] tracking-[0.12em] uppercase font-light px-2 py-0.5"
@@ -702,22 +702,22 @@ function BookingList({ onNew }: { onNew: () => void }) {
                       </span>
                     </div>
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-urbanist)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                         {b.client_name}
                       </span>
                       {b.event_start_date && (
-                        <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)' }}>
                           {formatDate(b.event_start_date)}
                         </span>
                       )}
-                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
                         {b.primary_shop}
                       </span>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     {b.total_price != null && (
-                      <div style={{ fontSize: '16px', fontWeight: 200, color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 200, color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
                         ${b.total_price.toLocaleString()}
                       </div>
                     )}
@@ -747,18 +747,18 @@ function StepIndicator({ step }: { step: number }) {
         <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: s === step ? '1px solid rgba(255,255,255,0.6)' : '1px solid rgba(255,255,255,0.15)',
-            background: s < step ? 'rgba(255,255,255,0.08)' : 'transparent',
+            border: s === step ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+            background: s < step ? 'var(--surface)' : 'transparent',
             fontSize: '10px', fontWeight: 300, fontFamily: 'var(--font-josefin)',
-            color: s === step ? '#ffffff' : s < step ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)',
+            color: s === step ? 'var(--text-primary)' : s < step ? 'var(--text-secondary)' : 'var(--text-dim)',
             transition: 'all 0.2s',
           }}>
             {s}
           </div>
-          <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-josefin)', color: s === step ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)' }}>
+          <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-josefin)', color: s === step ? 'var(--text-secondary)' : 'var(--text-dim)' }}>
             {s === 1 ? 'Details' : s === 2 ? 'Equipment' : 'Confirm'}
           </span>
-          {s < 3 && <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.1)' }} />}
+          {s < 3 && <div style={{ width: '20px', height: '1px', background: 'var(--border)' }} />}
         </div>
       ))}
     </div>
@@ -800,18 +800,18 @@ function PricingSettingsTab() {
     setSaving(null);
   }
 
-  const labelStyle = { fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' };
+  const labelStyle = { fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase' as const, color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' };
 
-  if (loading) return <div className="flex justify-center py-10"><Loader2 size={14} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} /></div>;
+  if (loading) return <div className="flex justify-center py-10"><Loader2 size={14} className="animate-spin" style={{ color: 'var(--text-dim)' }} /></div>;
 
   return (
     <div className="space-y-1 mt-6">
       <div style={{ ...labelStyle, marginBottom: '16px' }}>Price per Light · per Day</div>
       {settings.map(s => (
-        <div key={s.id} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>{s.light_type}</span>
+        <div key={s.id} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+          <span style={{ fontFamily: 'var(--font-josefin)', fontSize: '13px', fontWeight: 300, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>{s.light_type}</span>
           <div className="flex items-center gap-2">
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>$</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>$</span>
             <input
               type="number"
               min={0}
@@ -820,16 +820,16 @@ function PricingSettingsTab() {
               onBlur={() => savePrice(s)}
               style={{
                 width: '64px', background: 'transparent', border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.15)', color: '#ffffff',
+                borderBottom: '1px solid var(--border-strong)', color: 'var(--text-primary)',
                 fontFamily: 'var(--font-urbanist)', fontWeight: 200, fontSize: '14px',
                 outline: 'none', textAlign: 'right', padding: '0 0 4px 0',
               }}
             />
-            {saving === s.id && <Loader2 size={10} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />}
+            {saving === s.id && <Loader2 size={10} className="animate-spin" style={{ color: 'var(--text-muted)' }} />}
           </div>
         </div>
       ))}
-      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, marginTop: '16px' }}>
+      <p style={{ fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, marginTop: '16px' }}>
         Changes apply to new quotes only. Click outside a field to save.
       </p>
     </div>
@@ -970,16 +970,16 @@ export default function BookingPage() {
   }
 
   return (
-    <motion.div {...pageAnim} className="min-h-screen" style={{ background: '#070c0e' }}>
+    <motion.div {...pageAnim} className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <GlobalNav />
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
+      <div className="px-5 pt-8 pb-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '8px' }}>
           Courtney's Tools
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
             {mode === 'list' ? 'Booking' : mode === 'pricing' ? 'Pricing' : 'New Booking'}
           </h1>
           <div className="flex items-center gap-2">
@@ -987,12 +987,12 @@ export default function BookingPage() {
               <>
                 <button onClick={() => setMode('pricing')}
                   className="px-3 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-70"
-                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                   Pricing
                 </button>
                 <button onClick={() => { setMode('new'); setStep(1); }}
                   className="flex items-center gap-1.5 px-3 py-2 text-[9px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-70"
-                  style={{ border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-josefin)' }}>
+                  style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                   <Plus size={10} strokeWidth={1.5} /> New
                 </button>
               </>
@@ -1000,7 +1000,7 @@ export default function BookingPage() {
             {(mode === 'new' || mode === 'pricing') && (
               <button onClick={() => { setMode('list'); setStep(1); }}
                 className="flex items-center gap-1.5 transition-opacity hover:opacity-50"
-                style={{ color: 'rgba(255,255,255,0.3)' }}>
+                style={{ color: 'var(--text-muted)' }}>
                 <X size={14} strokeWidth={1.5} />
               </button>
             )}
@@ -1031,7 +1031,7 @@ export default function BookingPage() {
                 <motion.div key="step2" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }}>
                   {loadingCases ? (
                     <div className="flex justify-center py-16">
-                      <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                      <Loader2 size={16} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
                     </div>
                   ) : (
                     <Step2Equipment

@@ -61,30 +61,30 @@ export default function CreateCustomCardModal({ isOpen, eventId, onClose, onCrea
           <motion.div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             <motion.div
               className="w-full sm:max-w-sm overflow-hidden"
-              style={{ background: '#0c1317', borderTop: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 32, stiffness: 280 }}
             >
               <div className="flex justify-center pt-4 pb-1 sm:hidden">
-                <div className="w-8 h-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <div className="w-8 h-px" style={{ background: 'var(--border-strong)' }} />
               </div>
 
               <div className="flex items-center justify-between px-7 py-6">
-                <h2 className="text-xl font-light tracking-[0.08em]" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>
+                <h2 className="text-xl font-light tracking-[0.08em]" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>
                   Custom Card
                 </h2>
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <X size={13} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center" style={{ border: '1px solid var(--border)' }}>
+                  <X size={13} style={{ color: 'var(--text-secondary)' }} />
                 </button>
               </div>
 
-              <div className="h-px mx-7" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              <div className="h-px mx-7" style={{ background: 'var(--border)' }} />
 
               <form onSubmit={handleSubmit} className="px-7 pt-6 pb-8 space-y-6">
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Name
                   </label>
                   <input
@@ -95,8 +95,8 @@ export default function CreateCustomCardModal({ isOpen, eventId, onClose, onCrea
                     className="w-full outline-none placeholder:opacity-20 text-sm"
                     style={{
                       background: 'transparent', border: 'none',
-                      borderBottom: '1px solid rgba(255,255,255,0.1)',
-                      color: '#ffffff', borderRadius: 0,
+                      borderBottom: '1px solid var(--border)',
+                      color: 'var(--text-primary)', borderRadius: 0,
                       fontFamily: 'var(--font-urbanist)', fontWeight: 200,
                       padding: '0 0 10px 0',
                     }}
@@ -104,7 +104,7 @@ export default function CreateCustomCardModal({ isOpen, eventId, onClose, onCrea
                 </div>
 
                 <div>
-                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-4" style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}>
+                  <label className="block text-[9px] tracking-[0.28em] uppercase font-light mb-4" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}>
                     Color
                   </label>
                   <div className="grid grid-cols-6 gap-2 mb-5">
@@ -127,7 +127,7 @@ export default function CreateCustomCardModal({ isOpen, eventId, onClose, onCrea
                     <div className="w-px h-7" style={{ background: color }} />
                     <div>
                       <div className="text-[9px] tracking-[0.2em] uppercase font-light" style={{ color, fontFamily: 'var(--font-josefin)' }}>Custom</div>
-                      <div className="text-base font-light tracking-wide" style={{ color: '#ffffff', fontFamily: 'var(--font-josefin)' }}>{name || 'Card Name'}</div>
+                      <div className="text-base font-light tracking-wide" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)' }}>{name || 'Card Name'}</div>
                     </div>
                   </div>
                 </div>
@@ -139,8 +139,8 @@ export default function CreateCustomCardModal({ isOpen, eventId, onClose, onCrea
                   disabled={isSubmitting}
                   className="w-full py-3.5 text-[10px] tracking-[0.3em] uppercase font-light flex items-center justify-center gap-2 transition-opacity"
                   style={{
-                    border: `1px solid rgba(255,255,255,0.4)`,
-                    color: '#ffffff',
+                    border: `1px solid var(--border-strong)`,
+                    color: 'var(--text-primary)',
                     fontFamily: 'var(--font-josefin)',
                     opacity: isSubmitting ? 0.5 : 1,
                   }}

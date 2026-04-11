@@ -43,8 +43,8 @@ function newReimb(): ReimbItem {
 const INPUT_STYLE: React.CSSProperties = {
   background: 'transparent',
   border: 'none',
-  borderBottom: '1px solid rgba(255,255,255,0.1)',
-  color: '#ffffff',
+  borderBottom: '1px solid var(--border)',
+  color: 'var(--text-primary)',
   borderRadius: 0,
   fontFamily: 'var(--font-urbanist)',
   fontWeight: 200,
@@ -60,20 +60,20 @@ const LABEL_STYLE: React.CSSProperties = {
   letterSpacing: '0.28em',
   textTransform: 'uppercase',
   fontWeight: 300,
-  color: 'rgba(255,255,255,0.5)',
+  color: 'var(--text-muted)',
   fontFamily: 'var(--font-josefin)',
   marginBottom: '12px',
 };
 
 const SECTION_DIVIDER: React.CSSProperties = {
-  borderTop: '1px solid rgba(255,255,255,0.06)',
+  borderTop: '1px solid var(--border-subtle)',
   paddingTop: '28px',
   marginTop: '28px',
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 300, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
+    <div style={{ fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 300, color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '20px' }}>
       {children}
     </div>
   );
@@ -87,9 +87,9 @@ function Toggle({ active, onClick, children }: { active: boolean; onClick: () =>
       className="flex-1 py-2.5 text-[10px] tracking-[0.22em] uppercase font-light transition-all"
       style={{
         fontFamily: 'var(--font-josefin)',
-        border: active ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
-        color: active ? '#ffffff' : 'rgba(255,255,255,0.3)',
-        background: active ? 'rgba(255,255,255,0.04)' : 'transparent',
+        border: active ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+        color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+        background: active ? 'var(--surface)' : 'transparent',
       }}
     >
       {children}
@@ -238,34 +238,34 @@ export default function PayrollPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen" style={{ background: '#070c0e' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Header */}
       <header
         className="sticky top-0 z-30 flex items-center gap-4 px-5 py-4"
         style={{
-          background: 'rgba(7,12,14,0.96)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          background: 'var(--nav-bg)',
+          borderBottom: '1px solid var(--nav-border)',
           backdropFilter: 'blur(16px)',
         }}
       >
         <Link href="/" className="flex items-center gap-1.5 transition-opacity hover:opacity-50">
-          <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'rgba(255,255,255,0.4)' }} />
+          <ChevronLeft size={13} strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
         </Link>
-        <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
+        <div className="w-px h-4" style={{ background: 'var(--border)' }} />
         <Logo size="sm" asLink={false} />
       </header>
 
       {/* Page title */}
-      <div className="px-6 pt-10 pb-8" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="px-6 pt-10 pb-8" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.38em', textTransform: 'uppercase', fontWeight: 300, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.38em', textTransform: 'uppercase', fontWeight: 300, color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)', marginBottom: '10px' }}>
             Jacob Co
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: '#ffffff', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 300, letterSpacing: '0.05em', color: 'var(--text-primary)', fontFamily: 'var(--font-josefin)', marginBottom: '6px' }}>
             Payroll Submission
           </h1>
           {currentPeriod && (
-            <p style={{ fontSize: '12px', fontWeight: 200, color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-urbanist)' }}>
+            <p style={{ fontSize: '12px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)' }}>
               Due {formatDueDate(currentPeriod)}
             </p>
           )}
@@ -283,7 +283,7 @@ export default function PayrollPage() {
               <select
                 value={periodIdx}
                 onChange={e => setPeriodIdx(Number(e.target.value))}
-                style={{ ...INPUT_STYLE, colorScheme: 'dark', cursor: 'pointer' }}
+                style={{ ...INPUT_STYLE, colorScheme: 'light dark', cursor: 'pointer' }}
                 className="appearance-none"
               >
                 {periods.map((p, i) => (
@@ -293,14 +293,14 @@ export default function PayrollPage() {
                 ))}
               </select>
               {currentPeriod && (
-                <p style={{ fontSize: '11px', fontWeight: 200, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-urbanist)', marginTop: '8px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 200, color: 'var(--text-dim)', fontFamily: 'var(--font-urbanist)', marginTop: '8px' }}>
                   Submission due {formatDueDate(currentPeriod)}
                 </p>
               )}
             </div>
           ) : (
             <div style={{ height: '44px', display: 'flex', alignItems: 'center' }}>
-              <Loader2 size={14} className="animate-spin" style={{ color: 'rgba(255,255,255,0.2)' }} />
+              <Loader2 size={14} className="animate-spin" style={{ color: 'var(--text-dim)' }} />
             </div>
           )}
         </motion.div>
@@ -317,7 +317,7 @@ export default function PayrollPage() {
                   if (e.target.value === '__other__') setName('__other__');
                   else setName(e.target.value);
                 }}
-                style={{ ...INPUT_STYLE, colorScheme: 'dark', cursor: 'pointer' }}
+                style={{ ...INPUT_STYLE, colorScheme: 'light dark', cursor: 'pointer' }}
                 className="appearance-none"
               >
                 <option value="" disabled>Select your name</option>
@@ -342,7 +342,7 @@ export default function PayrollPage() {
               <select
                 value={role}
                 onChange={e => setRole(e.target.value)}
-                style={{ ...INPUT_STYLE, colorScheme: 'dark', cursor: 'pointer' }}
+                style={{ ...INPUT_STYLE, colorScheme: 'light dark', cursor: 'pointer' }}
                 className="appearance-none"
               >
                 <option value="" disabled>Select your role</option>
@@ -362,7 +362,7 @@ export default function PayrollPage() {
               <select
                 value={eventsCount}
                 onChange={e => setEventsCount(e.target.value)}
-                style={{ ...INPUT_STYLE, colorScheme: 'dark', cursor: 'pointer' }}
+                style={{ ...INPUT_STYLE, colorScheme: 'light dark', cursor: 'pointer' }}
                 className="appearance-none"
               >
                 {Array.from({ length: 16 }, (_, i) => (
@@ -482,7 +482,7 @@ export default function PayrollPage() {
                   type="button"
                   onClick={addReimb}
                   className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase font-light transition-opacity hover:opacity-60 mt-2"
-                  style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-josefin)' }}
+                  style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-josefin)' }}
                 >
                   <Plus size={11} strokeWidth={1.5} />
                   Add Another Item
@@ -522,8 +522,8 @@ export default function PayrollPage() {
             disabled={submitting}
             className="w-full py-4 text-[10px] tracking-[0.35em] uppercase font-light flex items-center justify-center gap-2 transition-opacity"
             style={{
-              border: '1px solid rgba(255,255,255,0.5)',
-              color: submitting ? 'rgba(255,255,255,0.3)' : '#ffffff',
+              border: '1px solid var(--border-strong)',
+              color: submitting ? 'var(--text-muted)' : 'var(--text-primary)',
               fontFamily: 'var(--font-josefin)',
               opacity: submitting ? 0.6 : 1,
             }}
@@ -564,8 +564,8 @@ function ReimbursementItemUI({
   const INPUT_STYLE: React.CSSProperties = {
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
-    color: '#ffffff',
+    borderBottom: '1px solid var(--border)',
+    color: 'var(--text-primary)',
     borderRadius: 0,
     fontFamily: 'var(--font-urbanist)',
     fontWeight: 200,
@@ -579,10 +579,10 @@ function ReimbursementItemUI({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
-      style={{ border: '1px solid rgba(255,255,255,0.07)', padding: '18px 16px', background: 'rgba(255,255,255,0.02)' }}
+      style={{ border: '1px solid var(--border)', padding: '18px 16px', background: 'var(--card)' }}
     >
       <div className="flex items-center justify-between mb-4">
-        <span style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-josefin)' }}>
+        <span style={{ fontSize: '9px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-dim)', fontFamily: 'var(--font-josefin)' }}>
           Item {index + 1}
         </span>
         {showRemove && (
@@ -595,7 +595,7 @@ function ReimbursementItemUI({
       <div className="space-y-4">
         {/* Amount */}
         <div className="flex items-end gap-2">
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', paddingBottom: '8px', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>$</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '14px', paddingBottom: '8px', fontFamily: 'var(--font-urbanist)', fontWeight: 200 }}>$</span>
           <input
             type="number"
             min="0"
@@ -623,10 +623,10 @@ function ReimbursementItemUI({
             <div className="flex items-center gap-3">
               <div
                 className="flex-1 flex items-center gap-2 py-2 px-3"
-                style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
+                style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
               >
                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(120,200,120,0.7)', flexShrink: 0 }} />
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-urbanist)', fontWeight: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.file?.name ?? 'Receipt uploaded'}
                 </span>
               </div>
@@ -641,8 +641,8 @@ function ReimbursementItemUI({
               disabled={item.uploading}
               className="flex items-center gap-2 py-2 px-3 text-[10px] tracking-[0.18em] uppercase transition-opacity hover:opacity-70"
               style={{
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.35)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-muted)',
                 fontFamily: 'var(--font-josefin)',
                 width: '100%',
                 justifyContent: 'center',
